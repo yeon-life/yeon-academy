@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연플래닝 학원 삼산점 — 자기주도 × AI 교육</title>
+<meta property="og:title" content="연플래닝 학원 삼산점 | 새로운 교육 트렌드">
+<meta property="og:description" content="거부할 수 없고, 거부하면 안 되는 교육 | 자기주도 학습 × AI 교육">
+<meta property="og:url" content="https://yeon.ai.kr/ulsan/y-planning_ss">
+<link rel="canonical" href="https://yeon.ai.kr/ulsan/y-planning_ss">
+<meta name="theme-color" content="#2f5d62">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --deep:#2f5d62;--pine:#427a71;--ink:#1f2a2a;
+  --accent:#c38d56;--accent2:#e8a96e;
+  --mist:#f4f1eb;--sand:#e7d9bf;--sage:#dfe8de;--card:#fffdf8;--peach:#f3e7dd;
+  --line:#d7d1c5;
+  --t1:#1f2a2a;--t2:#536060;--t3:#6a7676;
+  --rust:#b05830;--rust2:#d4693f;
+  --white:#ffffff;
+}
+html{scroll-behavior:smooth}
+body{background:var(--mist);color:var(--t1);font-family:'Noto Sans KR',sans-serif;overflow-x:hidden}
+
+/* ─────────────── NAV ─────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;transition:background 0.4s,box-shadow 0.4s;gap:16px}
+nav.scrolled{background:rgba(20,33,33,0.97);backdrop-filter:blur(14px);box-shadow:0 4px 28px rgba(0,0,0,0.22)}
+
+/* 로고 */
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:13px;letter-spacing:.5px;color:white;text-decoration:none;white-space:nowrap;flex-shrink:0}
+.nav-logo-mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Noto Serif KR',serif;font-size:16px;font-weight:700;color:white}
+
+/* 탭 메뉴 */
+.nav-tabs{display:flex;align-items:center;gap:2px;flex:1;justify-content:center}
+.nav-tab{position:relative;color:rgba(255,255,255,0.55);text-decoration:none;font-size:13px;font-weight:500;padding:8px 16px;border-radius:8px;transition:color 0.2s,background 0.2s;white-space:nowrap;cursor:pointer;background:none;border:none;font-family:'Noto Sans KR',sans-serif}
+.nav-tab:hover{color:white;background:rgba(255,255,255,0.07)}
+.nav-tab.active{color:var(--accent2);font-weight:700}
+.nav-tab.active::after{content:'';position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);width:20px;height:2px;background:var(--accent2);border-radius:2px}
+
+/* 우측 액션 */
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.nav-login{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.75);font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans KR',sans-serif}
+.nav-login:hover{background:rgba(195,141,86,0.18);border-color:rgba(195,141,86,0.45);color:var(--accent2)}
+.nav-options{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative}
+.nav-options:hover{background:rgba(255,255,255,0.12)}
+.nav-options svg{color:rgba(255,255,255,0.6)}
+
+/* 옵션 드롭다운 */
+.options-menu{position:absolute;top:calc(100% + 8px);right:0;background:rgba(25,38,38,0.97);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:8px;min-width:160px;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity 0.2s,transform 0.2s;z-index:400}
+.options-menu.open{opacity:1;pointer-events:all;transform:none}
+.opt-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;color:rgba(255,255,255,0.7);cursor:pointer;transition:background 0.15s;text-decoration:none}
+.opt-item:hover{background:rgba(255,255,255,0.08);color:white}
+.opt-sep{height:1px;background:rgba(255,255,255,0.08);margin:4px 0}
+
+@media(max-width:768px){.nav-tabs{display:none}}
+
+/* ─────────────── 페이드인 ─────────────── */
+.fi{opacity:0;transform:translateY(30px);transition:opacity 0.7s cubic-bezier(.22,1,.36,1),transform 0.7s cubic-bezier(.22,1,.36,1)}
+.fi.on{opacity:1;transform:none}
+.d1{transition-delay:.08s}.d2{transition-delay:.18s}.d3{transition-delay:.28s}.d4{transition-delay:.38s}.d5{transition-delay:.48s}
+
+/* ─────────────── HERO ─────────────── */
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;background:var(--ink)}
+.hero-bg{position:absolute;inset:0;background:
+  radial-gradient(circle at 10% 20%, rgba(195,141,86,0.22) 0%, transparent 42%),
+  radial-gradient(circle at 90% 80%, rgba(66,122,113,0.18) 0%, transparent 40%),
+  radial-gradient(circle at 50% 50%, rgba(47,93,98,0.35) 0%, transparent 65%),
+  linear-gradient(160deg,#1a2e2e 0%,#0d1f1f 50%,#1f2a1a 100%)}
+.hero-glow{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;border-radius:50%;background:rgba(195,141,86,0.06);filter:blur(100px);pointer-events:none}
+.hero-content{position:relative;z-index:1;text-align:center;max-width:860px;padding:100px 32px 60px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(195,141,86,0.12);border:1px solid rgba(195,141,86,0.35);border-radius:999px;padding:7px 18px;color:var(--accent2);font-size:12px;font-weight:700;letter-spacing:1.5px;margin-bottom:28px}
+.hero-title{font-family:'Noto Serif KR',serif;font-size:clamp(28px,5.5vw,52px);font-weight:700;color:white;line-height:1.25;margin-bottom:18px}
+.hero-title em{color:var(--accent2);font-style:normal;display:block}
+.hero-sub{font-size:clamp(14px,2vw,17px);color:rgba(255,255,255,0.62);line-height:1.85;max-width:560px;margin:0 auto 36px}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;border-radius:999px;font-size:14px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;text-decoration:none;border:none;transition:all 0.22s}
+.btn-warm{background:var(--accent);color:white}.btn-warm:hover{background:var(--accent2);transform:scale(1.04)}
+.btn-ghost{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.85);border:1.5px solid rgba(255,255,255,0.2)}.btn-ghost:hover{background:rgba(255,255,255,0.14)}
+.btn-teal{background:var(--deep);color:white}.btn-teal:hover{filter:brightness(1.1)}
+.btn-sm{padding:10px 20px;font-size:13px}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:420px;margin:52px auto 0;padding-top:36px;border-top:1px solid rgba(255,255,255,0.1)}
+.stat-num{font-size:28px;font-weight:800;color:var(--accent2);font-family:'Noto Serif KR',serif}
+.stat-label{font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px;letter-spacing:.5px}
+.scroll-hint{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.28);font-size:22px;animation:bob 2s ease-in-out infinite;cursor:pointer;text-decoration:none}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)}}
+
+/* ─────────────── 공통 섹션 ─────────────── */
+section{padding:88px 0}
+.container{max-width:1100px;margin:0 auto;padding:0 32px}
+.sec-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 16px;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:14px}
+.sec-badge.teal{background:rgba(66,122,113,0.12);color:var(--pine)}
+.sec-badge.warm{background:rgba(195,141,86,0.12);color:var(--accent)}
+.sec-badge.rust{background:rgba(176,80,48,0.1);color:var(--rust)}
+.sec-badge.light{background:rgba(195,141,86,0.18);color:var(--accent2)}
+.sec-title{font-family:'Noto Serif KR',serif;font-size:clamp(22px,3.5vw,34px);font-weight:700;line-height:1.3;margin-bottom:14px;color:var(--ink)}
+.sec-title.wh{color:white}
+.sec-sub{font-size:15px;color:var(--t2);line-height:1.85;max-width:600px}
+.text-center{text-align:center}
+.text-center .sec-sub{margin:0 auto}
+
+/* ─────────────── 학원 소개 ─────────────── */
+#about{background:var(--card)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start;margin-top:40px}
+@media(max-width:880px){.about-grid{grid-template-columns:1fr}}
+.about-info-block{background:var(--mist);border-radius:20px;padding:32px;border:1.5px solid var(--line)}
+.about-info-row{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.about-info-row:last-child{border-bottom:none;padding-bottom:0}
+.about-info-icon{width:36px;height:36px;border-radius:10px;background:rgba(47,93,98,0.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:2px}
+.about-info-label{font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;margin-bottom:3px}
+.about-info-value{font-size:14px;color:var(--t1);line-height:1.7;font-weight:500}
+.about-principal{background:linear-gradient(135deg,var(--deep) 0%,var(--pine) 100%);border-radius:20px;padding:32px;color:white;margin-top:20px}
+.about-principal-tag{font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:1px;margin-bottom:8px}
+.about-principal-name{font-family:'Noto Serif KR',serif;font-size:22px;font-weight:700;margin-bottom:4px}
+.about-principal-sub{font-size:13px;color:rgba(255,255,255,0.65);line-height:1.7}
+.about-history{margin-top:20px}
+.history-item{display:flex;gap:20px;padding:16px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.history-item:last-child{border-bottom:none}
+.history-year{font-size:13px;font-weight:800;color:var(--deep);min-width:52px;padding-top:2px}
+.history-desc{font-size:14px;color:var(--t2);line-height:1.7}
+
+/* ─────────────── 연의 생각 ─────────────── */
+#thoughts{background:var(--ink)}
+.thoughts-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:40px}
+@media(max-width:768px){.thoughts-grid{grid-template-columns:1fr}}
+.thought-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:28px;transition:border-color 0.2s,transform 0.2s;cursor:pointer}
+.thought-card:hover{border-color:rgba(195,141,86,0.35);transform:translateY(-3px)}
+.thought-card.featured{background:rgba(195,141,86,0.08);border-color:rgba(195,141,86,0.25);grid-column:1/-1}
+.thought-date{font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:.5px;margin-bottom:10px}
+.thought-title{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;color:white;line-height:1.5;margin-bottom:12px}
+.thought-card.featured .thought-title{font-size:22px}
+.thought-body{font-size:13px;color:rgba(255,255,255,0.55);line-height:1.85}
+.thought-tag{display:inline-block;background:rgba(195,141,86,0.15);color:var(--accent2);font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;margin-bottom:12px}
+.thoughts-quote{background:rgba(66,122,113,0.15);border-left:3px solid var(--pine);border-radius:0 16px 16px 0;padding:24px 28px;margin-top:32px}
+.thoughts-quote p{font-family:'Noto Serif KR',serif;font-size:17px;color:white;line-height:1.75;font-weight:400}
+.thoughts-quote .q-author{font-size:12px;color:rgba(255,255,255,0.4);margin-top:12px}
+
+/* ─────────────── 개설 수업 ─────────────── */
+#classes{background:var(--mist)}
+.classes-tabs{display:flex;gap:8px;margin-bottom:40px;flex-wrap:wrap}
+.class-tab-btn{background:white;border:1.5px solid var(--line);color:var(--t2);font-size:13px;font-weight:600;padding:9px 20px;border-radius:999px;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans KR',sans-serif}
+.class-tab-btn.active{background:var(--deep);border-color:var(--deep);color:white}
+.class-pane{display:none}.class-pane.active{display:block}
+
+/* 자기주도 수업 */
+.self-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:768px){.self-grid{grid-template-columns:1fr}}
+.self-card{background:white;border-radius:20px;padding:28px;border:1.5px solid var(--line);transition:box-shadow 0.2s,transform 0.2s}
+.self-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(31,42,42,0.09)}
+.self-icon{width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.self-icon.teal{background:rgba(47,93,98,0.1)}
+.self-icon.warm{background:rgba(195,141,86,0.12)}
+.self-icon.sage{background:rgba(66,122,113,0.1)}
+.self-title{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.self-desc{font-size:13px;color:var(--t2);line-height:1.8}
+.self-detail{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.self-chip{background:var(--mist);color:var(--t2);font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px}
+
+/* AI 수업 */
+.ai-hero-card{background:linear-gradient(135deg,#1a2e2e 0%,#2b3b32 60%,#2f5d62 100%);border-radius:28px;padding:48px 40px;text-align:center;position:relative;overflow:hidden;margin-bottom:32px}
+.ai-hero-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,rgba(195,141,86,0.15),transparent 55%)}
+.ai-hero-tag{display:inline-block;background:rgba(176,80,48,0.8);color:white;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:5px 14px;border-radius:999px;margin-bottom:16px}
+.ai-hero-title{font-family:'Noto Serif KR',serif;font-size:clamp(20px,4vw,34px);font-weight:700;color:white;line-height:1.35;margin-bottom:8px;position:relative}
+.ai-hero-sub{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:20px;position:relative}
+.ai-tools{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(min-width:600px){.ai-tools{grid-template-columns:repeat(4,1fr)}}
+.ai-tool{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 12px;text-align:center;transition:transform 0.2s,box-shadow 0.2s}
+.ai-tool:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(31,42,42,0.1)}
+.ai-tool-icon{font-size:26px;margin-bottom:8px}
+.ai-tool-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.ai-tool-sub{font-size:11px;color:var(--t3)}
+
+/* 연플래너 수업 */
+.planner-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+@media(max-width:768px){.planner-wrap{grid-template-columns:1fr}}
+.planner-screen{background:linear-gradient(160deg,var(--ink),#2a3f3f);border-radius:24px;padding:28px;aspect-ratio:4/3;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.planner-screen::before{content:'연플래너';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Noto Serif KR',serif;font-size:64px;font-weight:700;color:rgba(195,141,86,0.06);white-space:nowrap}
+.planner-row{background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.planner-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.planner-dot.g{background:var(--pine)}
+.planner-dot.y{background:var(--accent)}
+.planner-dot.r{background:var(--rust2)}
+.planner-row-text{font-size:12px;color:rgba(255,255,255,0.65)}
+.planner-row-tag{margin-left:auto;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(66,122,113,0.25);color:var(--pine)}
+.planner-features{display:flex;flex-direction:column;gap:16px}
+.pf-item{display:flex;gap:14px;align-items:flex-start}
+.pf-icon{width:40px;height:40px;border-radius:12px;background:rgba(47,93,98,0.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pf-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.pf-desc{font-size:13px;color:var(--t2);line-height:1.7}
+
+/* ─────────────── 기타 사항 ─────────────── */
+#info{background:var(--card)}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px}
+@media(max-width:768px){.info-grid{grid-template-columns:1fr}}
+.info-card{background:var(--mist);border-radius:20px;padding:28px;border:1.5px solid var(--line)}
+.info-card-header{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.info-card-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.info-card-icon.teal{background:rgba(47,93,98,0.12)}
+.info-card-icon.warm{background:rgba(195,141,86,0.12)}
+.info-card-icon.rust{background:rgba(176,80,48,0.1)}
+.info-card-icon.sage{background:rgba(66,122,113,0.1)}
+.info-card-title{font-size:16px;font-weight:700;color:var(--ink)}
+.info-card-sub{font-size:12px;color:var(--t3);margin-top:2px}
+.info-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px;align-items:flex-start}
+.info-row:last-of-type{border-bottom:none;padding-bottom:0}
+.info-row-label{color:var(--t3);min-width:60px;flex-shrink:0;font-weight:500;padding-top:1px}
+.info-row-value{color:var(--t1);line-height:1.65;font-weight:500}
+/* 간담회 카드 */
+.event-card{background:linear-gradient(135deg,var(--deep),var(--pine));border-radius:20px;padding:28px;color:white;grid-column:1/-1}
+.event-date-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.event-date-box{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:12px 20px;text-align:center;flex:1;min-width:120px}
+.event-date-box strong{display:block;font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;margin-bottom:2px}
+.event-date-box span{font-size:12px;color:rgba(255,255,255,0.6)}
+/* FAQ */
+.faq-item{border-bottom:1px solid var(--line);padding:16px 0}
+.faq-item:last-child{border-bottom:none;padding-bottom:0}
+.faq-q{font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.faq-q::after{content:'＋';font-size:18px;color:var(--t3);flex-shrink:0;transition:transform 0.2s}
+.faq-item.open .faq-q::after{transform:rotate(45deg)}
+.faq-a{font-size:13px;color:var(--t2);line-height:1.8;max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s}
+.faq-item.open .faq-a{max-height:200px;padding-top:10px}
+
+/* ─────────────── CTA ─────────────── */
+#cta{background:var(--ink);text-align:center;padding:80px 32px}
+.cta-title{font-family:'Noto Serif KR',serif;font-size:clamp(22px,4vw,36px);color:white;font-weight:700;line-height:1.4;margin-bottom:14px}
+.cta-sub{font-size:14px;color:rgba(255,255,255,0.55);margin-bottom:32px;line-height:1.8}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.contact-row{margin-top:28px;font-size:13px;color:rgba(255,255,255,0.4)}
+.contact-row a{color:var(--accent2);text-decoration:none;font-weight:700}
+
+/* ─────────────── FOOTER ─────────────── */
+footer{background:#0d1515;padding:32px 32px;text-align:center;font-size:12px;color:rgba(255,255,255,0.3);line-height:1.9}
+footer strong{color:rgba(255,255,255,0.65)}
+
+/* ─────────────── FAB ─────────────── */
+.fab{position:fixed;bottom:24px;right:20px;width:52px;height:52px;background:var(--rust);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(176,80,48,0.45);z-index:100;text-decoration:none;transition:transform 0.2s}
+.fab:hover{transform:scale(1.08)}
+
+/* ─────────────── 관리자 로그인 모달 ─────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:#ffffff;border-radius:24px;padding:40px 36px;width:100%;max-width:380px;margin:16px;transform:scale(0.94) translateY(12px);transition:transform 0.25s cubic-bezier(.22,1,.36,1);box-shadow:0 32px 80px rgba(0,0,0,0.3)}
+.modal-overlay.open .modal{transform:none}
+.modal-logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Noto Serif KR',serif;font-size:22px;font-weight:700;color:white;margin:0 auto 20px}
+.modal h3{font-family:'Noto Serif KR',serif;font-size:20px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--t3);text-align:center;margin-bottom:28px}
+.modal-field{margin-bottom:16px}
+.modal-label{font-size:12px;font-weight:700;color:var(--t2);margin-bottom:6px;display:block;letter-spacing:.3px}
+.modal-input{width:100%;padding:12px 16px;border:1.5px solid var(--line);border-radius:12px;font-size:14px;color:var(--ink);font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color 0.2s}
+.modal-input:focus{border-color:var(--deep)}
+.modal-btn{width:100%;padding:14px;background:var(--deep);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:background 0.2s;margin-top:4px}
+.modal-btn:hover{background:var(--pine)}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:8px;background:var(--mist);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--t2);transition:background 0.2s}
+.modal-close:hover{background:var(--line)}
+.modal{position:relative}
+.modal-note{font-size:12px;color:var(--t3);text-align:center;margin-top:16px;line-height:1.6}
+
+@media(max-width:680px){
+  .hero-stats{grid-template-columns:repeat(3,1fr)}
+  .ai-hero-card{padding:32px 20px}
+  nav{padding:0 16px}
+  .nav-login span{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ─────────────── NAV ─────────────── -->
+<nav id="nav">
+  <a class="nav-logo" href="#hero">
+    <div class="nav-logo-mark">연</div>
+    연플래닝 삼산점
+  </a>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="scrollToSection('about')">학원 소개</button>
+    <button class="nav-tab" onclick="scrollToSection('thoughts')">연의 생각</button>
+    <button class="nav-tab" onclick="scrollToSection('classes')">개설 수업</button>
+    <button class="nav-tab" onclick="scrollToSection('info')">기타 사항</button>
+  </div>
+
+  <div class="nav-right">
+    <button class="nav-login" onclick="openLogin()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>관리자</span>
+    </button>
+    <div class="nav-options" onclick="toggleOptions()" id="optBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.47 14.26M3.46 19.07A10 10 0 0 1 4.93 4.93"/><path d="M12 2v2M12 20v2M2 12H4M20 12h2"/></svg>
+      <div class="options-menu" id="optMenu">
+        <a class="opt-item" href="https://jinwooshon-coder.github.io/yeon-ai-kr/invite/" target="_blank">📩 간담회 초대장</a>
+        <a class="opt-item" href="https://jinwooshon-coder.github.io/yeon-ai-kr/" target="_blank">🏠 메인 사이트</a>
+        <div class="opt-sep"></div>
+        <a class="opt-item" href="tel:01041365608">📞 원장 직통 전화</a>
+        <a class="opt-item" href="#info">📍 오시는 길</a>
+        <div class="opt-sep"></div>
+        <a class="opt-item" onclick="openLogin();toggleOptions()">🔐 관리자 로그인</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ─────────────── HERO ─────────────── -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow fi">🎯 2026 NEW — 연플래닝 삼산점</div>
+    <h1 class="hero-title fi d1">
+      거부할 수 없고,<br>
+      <em>거부하면 안 되는 교육</em>
+    </h1>
+    <p class="hero-sub fi d2">
+      20년 자기주도 학습의 철학이<br>
+      AI 시대의 새로운 교육 트렌드와 만납니다.<br>
+      연플래닝은 이미 준비되어 있습니다.
+    </p>
+    <div class="hero-btns fi d3">
+      <button class="btn btn-warm" onclick="scrollToSection('classes')">개설 수업 알아보기</button>
+      <button class="btn btn-ghost" onclick="scrollToSection('about')">학원 소개 보기</button>
+    </div>
+    <div class="hero-stats fi d4">
+      <div>
+        <div class="stat-num">20년</div>
+        <div class="stat-label">자기주도 학습</div>
+      </div>
+      <div>
+        <div class="stat-num">5종</div>
+        <div class="stat-label">과목별 AI 도구</div>
+      </div>
+      <div>
+        <div class="stat-num">초·중·고</div>
+        <div class="stat-label">전 학년 대상</div>
+      </div>
+    </div>
+  </div>
+  <a class="scroll-hint" onclick="scrollToSection('about')">↓</a>
+</section>
+
+<!-- ─────────────── 학원 소개 ─────────────── -->
+<section id="about">
+  <div class="container">
+    <span class="sec-badge teal fi">학원 소개</span>
+    <h2 class="sec-title fi d1">연플래닝 삼산점을<br>소개합니다</h2>
+    <p class="sec-sub fi d2">울산 삼산동에 새롭게 문을 연 연플래닝 삼산점.<br>자기주도 학습의 20년 철학을 AI 시대에 맞게 재정비했습니다.</p>
+
+    <div class="about-grid">
+      <div>
+        <div class="about-info-block fi d1">
+          <div class="about-info-row">
+            <div class="about-info-icon">📍</div>
+            <div>
+              <div class="about-info-label">위치</div>
+              <div class="about-info-value">울산광역시 남구 월평로 232 1층<br>삼산동 신세계백화점 인근</div>
+            </div>
+          </div>
+          <div class="about-info-row">
+            <div class="about-info-icon">📞</div>
+            <div>
+              <div class="about-info-label">연락처</div>
+              <div class="about-info-value"><a href="tel:01041365608" style="color:var(--deep);font-weight:700;text-decoration:none;">010-4136-5608</a><br>박미향 원장 직통</div>
+            </div>
+          </div>
+          <div class="about-info-row">
+            <div class="about-info-icon">🕐</div>
+            <div>
+              <div class="about-info-label">운영 시간</div>
+              <div class="about-info-value">평일 14:00 — 21:00<br>토요일 10:00 — 17:00 (일·공휴일 휴무)</div>
+            </div>
+          </div>
+          <div class="about-info-row">
+            <div class="about-info-icon">🎓</div>
+            <div>
+              <div class="about-info-label">대상 학년</div>
+              <div class="about-info-value">초등 4학년 ~ 고등 2학년</div>
+            </div>
+          </div>
+          <div class="about-info-row">
+            <div class="about-info-icon">📅</div>
+            <div>
+              <div class="about-info-label">개원</div>
+              <div class="about-info-value">2026년 5월 — 삼산점 신규 개원</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-principal fi d2">
+          <div class="about-principal-tag">PRINCIPAL</div>
+          <div class="about-principal-name">박미향 원장</div>
+          <div class="about-principal-sub">
+            연플래닝 삼산점을 맡고 있습니다.<br>
+            아이들이 스스로 생각하고, 스스로 계획하고,<br>
+            AI를 도구로 부리는 힘을 기르도록 돕겠습니다.<br><br>
+            이진우 원장과 함께 연플래닝의 20년 철학을<br>
+            삼산에서 이어가겠습니다.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="fi" style="font-family:'Noto Serif KR',serif;font-size:17px;color:var(--ink);margin-bottom:20px;">연플래닝이 걸어온 길</h3>
+        <div class="about-history">
+          <div class="history-item fi d1">
+            <div class="history-year">2006</div>
+            <div class="history-desc">연플래닝 자기주도학습 브랜드 탄생. "스스로 계획하는 아이"를 목표로 첫걸음을 내딛다.</div>
+          </div>
+          <div class="history-item fi d2">
+            <div class="history-year">2015</div>
+            <div class="history-desc">연플래너 도입. 학생 스스로 주간·월간 학습 계획을 세우고 돌아보는 루틴 정착.</div>
+          </div>
+          <div class="history-item fi d3">
+            <div class="history-year">2023</div>
+            <div class="history-desc">수풀·영풀·과풀·논풀 AI 도구 개발 시작. 과목별 AI 선생님 내재화 프로젝트 착수.</div>
+          </div>
+          <div class="history-item fi d4">
+            <div class="history-year">2025</div>
+            <div class="history-desc">AI 교육방향 특강 런칭. 자기주도 학습 철학과 AI 활용을 결합한 새로운 커리큘럼 완성.</div>
+          </div>
+          <div class="history-item fi d5">
+            <div class="history-year">2026</div>
+            <div class="history-desc">삼산점 신규 개원. 박미향 원장과 함께 AI × 자기주도학습의 새 챕터를 시작합니다.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 연의 생각 ─────────────── -->
+<section id="thoughts">
+  <div class="container">
+    <span class="sec-badge light fi">연의 생각</span>
+    <h2 class="sec-title wh fi d1">교육에 대한<br>연플래닝의 생각</h2>
+    <p class="fi d2" style="font-size:15px;color:rgba(255,255,255,0.55);line-height:1.85;max-width:560px;margin-bottom:8px;">이진우 원장이 직접 씁니다. 아이들의 교육, AI의 미래, 부모님께 드리는 이야기.</p>
+
+    <div class="thoughts-grid">
+      <div class="thought-card featured fi d1">
+        <div class="thought-tag">원장 칼럼</div>
+        <div class="thought-date">2026. 05. 07</div>
+        <div class="thought-title">AI를 잘 쓰는 아이와 그렇지 않은 아이의 차이는,<br>결국 스스로 생각하는 힘에서 나옵니다</div>
+        <div class="thought-body">
+          요즘 부모님들께서 많이 물어보십니다. "우리 아이도 AI 써야 하나요?" 제 대답은 항상 같습니다. "네, 그런데 방법이 다릅니다."<br><br>
+          AI를 단순히 검색어 입력창으로 쓰는 아이와, AI에게 좋은 질문을 던지며 함께 생각하는 아이 — 이 둘의 차이는 3년 뒤 성적표에서 보입니다. 연플래닝이 20년간 가르쳐온 자기주도 학습이란, 바로 "좋은 질문을 스스로 만드는 힘"이었습니다. 이것이 AI 시대에 가장 필요한 능력과 완전히 일치합니다.
+        </div>
+      </div>
+
+      <div class="thought-card fi d2">
+        <div class="thought-tag">교육 철학</div>
+        <div class="thought-date">2026. 04. 20</div>
+        <div class="thought-title">계획하는 아이는 흔들리지 않습니다</div>
+        <div class="thought-body">학원을 다니는 것보다 중요한 것이 있습니다. 학원 없이도 스스로 공부할 수 있는 아이를 만드는 것. 연플래닝이 플래너를 고집하는 이유입니다.</div>
+      </div>
+
+      <div class="thought-card fi d3">
+        <div class="thought-tag">학부모께</div>
+        <div class="thought-date">2026. 03. 15</div>
+        <div class="thought-title">초등 4학년이 분기점입니다</div>
+        <div class="thought-body">뇌과학적으로 습관이 가장 잘 형성되는 시기가 초등 4~6학년입니다. 이 시기에 "스스로 계획하는 경험"을 쌓은 아이는 중학교 이후가 완전히 달라집니다.</div>
+      </div>
+
+      <div class="thought-card fi d4">
+        <div class="thought-tag">AI 교육</div>
+        <div class="thought-date">2026. 02. 28</div>
+        <div class="thought-title">AI 때문에 공부가 쉬워진 것이 아닙니다</div>
+        <div class="thought-body">AI가 답을 내주는 시대. 오히려 "어떤 질문을 해야 하는지"가 더 중요해졌습니다. 연플래닝의 AI 수업은 답을 찾는 법이 아닌, 질문을 만드는 법을 가르칩니다.</div>
+      </div>
+    </div>
+
+    <div class="thoughts-quote fi d4">
+      <p>"좋은 질문을 아는 아이가 AI 시대를 이깁니다.<br>연플래닝이 20년간 가르쳐온 것이 바로 그것입니다."</p>
+      <div class="q-author">— 이진우 원장 / 연플래닝 교육 철학</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 개설 수업 ─────────────── -->
+<section id="classes">
+  <div class="container">
+    <span class="sec-badge teal fi">개설 수업</span>
+    <h2 class="sec-title fi d1">연플래닝 삼산점<br>개설 수업 안내</h2>
+    <p class="sec-sub fi d2">자기주도 플래닝부터 AI 수업까지, 연플래닝이 준비한 수업입니다.</p>
+
+    <div class="classes-tabs fi d3">
+      <button class="class-tab-btn active" onclick="switchClass('self')">📋 자기주도 플래닝</button>
+      <button class="class-tab-btn" onclick="switchClass('ai')">🤖 AI 교육방향 특강</button>
+      <button class="class-tab-btn" onclick="switchClass('planner')">📱 연플래너 활용</button>
+    </div>
+
+    <!-- 자기주도 플래닝 -->
+    <div class="class-pane active" id="pane-self">
+      <div class="self-grid">
+        <div class="self-card fi d1">
+          <div class="self-icon teal">📋</div>
+          <div class="self-title">주간 플래닝 수업</div>
+          <div class="self-desc">매주 월요일, 한 주의 학습 목표와 일정을 스스로 계획합니다. 단순한 시간표가 아닌, "왜 공부하는가"부터 출발하는 진짜 계획.</div>
+          <div class="self-detail">
+            <span class="self-chip">초등 4 ~ 고2</span>
+            <span class="self-chip">주 1회</span>
+            <span class="self-chip">50분</span>
+          </div>
+        </div>
+        <div class="self-card fi d2">
+          <div class="self-icon warm">🎯</div>
+          <div class="self-title">목표 설계 코칭</div>
+          <div class="self-desc">학기 초, 방학 전 집중 진행합니다. 내 아이만의 학습 지도를 그리고, 구체적인 단계별 목표를 함께 설계합니다.</div>
+          <div class="self-detail">
+            <span class="self-chip">학기별 2회</span>
+            <span class="self-chip">1:1 코칭</span>
+            <span class="self-chip">80분</span>
+          </div>
+        </div>
+        <div class="self-card fi d3">
+          <div class="self-icon sage">🔄</div>
+          <div class="self-title">주간 점검 & 피드백</div>
+          <div class="self-desc">금요일마다 한 주를 돌아봅니다. 계획 대비 실행률을 체크하고, 다음 주 계획을 보완합니다. 부모님께 매주 성장 리포트를 발송합니다.</div>
+          <div class="self-detail">
+            <span class="self-chip">주 1회</span>
+            <span class="self-chip">학부모 리포트</span>
+            <span class="self-chip">30분</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 교육방향 특강 -->
+    <div class="class-pane" id="pane-ai">
+      <div class="ai-hero-card fi d1">
+        <div class="ai-hero-tag">NEW CLASS · 2026. 5월 신설 · 초·중·고 전 학년</div>
+        <h2 class="ai-hero-title">내 두뇌에 AI 인공지능을 장착하자</h2>
+        <p class="ai-hero-sub">AI 교육방향 특강 (초, 중, 고)</p>
+        <p style="font-size:14px;color:rgba(255,255,255,0.6);line-height:1.85;max-width:540px;margin:0 auto;position:relative;">
+          AI를 잘 쓰는 아이와 그렇지 않은 아이 사이에는 눈에 보이는 격차가 벌어지고 있습니다.<br>
+          연플래닝의 AI 특강은 단순한 도구 사용법이 아닙니다.<br>
+          <strong style="color:var(--accent2);">AI와 함께 스스로 생각하는 힘</strong>을 기릅니다.
+        </p>
+      </div>
+      <h3 class="fi" style="font-family:'Noto Serif KR',serif;font-size:18px;color:var(--ink);text-align:center;margin-bottom:20px;">과목별 AI 선생님, 이미 완비했습니다</h3>
+      <div class="ai-tools">
+        <div class="ai-tool fi d1">
+          <div class="ai-tool-icon">📘</div>
+          <div class="ai-tool-name">영풀</div>
+          <div class="ai-tool-sub">영어 전용 AI · 독해·문법·어휘</div>
+        </div>
+        <div class="ai-tool fi d2">
+          <div class="ai-tool-icon">🌿</div>
+          <div class="ai-tool-name">수풀</div>
+          <div class="ai-tool-sub">수학 전용 AI · 개념·풀이·오답</div>
+        </div>
+        <div class="ai-tool fi d3">
+          <div class="ai-tool-icon">🔬</div>
+          <div class="ai-tool-name">과풀</div>
+          <div class="ai-tool-sub">과학 전용 AI · 탐구·개념·정리</div>
+        </div>
+        <div class="ai-tool fi d4">
+          <div class="ai-tool-icon">📝</div>
+          <div class="ai-tool-name">논풀</div>
+          <div class="ai-tool-sub">국어·논술 AI · 독서·사고·글쓰기</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 연플래너 활용 -->
+    <div class="class-pane" id="pane-planner">
+      <div class="planner-wrap">
+        <div>
+          <div class="planner-screen fi d1">
+            <div class="planner-row">
+              <div class="planner-dot g"></div>
+              <div class="planner-row-text">수학 — 이차방정식 개념 정리</div>
+              <div class="planner-row-tag">완료</div>
+            </div>
+            <div class="planner-row">
+              <div class="planner-dot y"></div>
+              <div class="planner-row-text">영어 — 독해 3지문 풀기</div>
+              <div class="planner-row-tag">진행중</div>
+            </div>
+            <div class="planner-row">
+              <div class="planner-dot r"></div>
+              <div class="planner-row-text">국어 — 문학 작품 분석</div>
+              <div class="planner-row-tag">예정</div>
+            </div>
+            <div class="planner-row">
+              <div class="planner-dot g"></div>
+              <div class="planner-row-text">과학 — 중력 개념 수풀 질문</div>
+              <div class="planner-row-tag">완료</div>
+            </div>
+            <div class="planner-row">
+              <div class="planner-dot y"></div>
+              <div class="planner-row-text">주간 목표 달성률 확인</div>
+              <div class="planner-row-tag">리뷰</div>
+            </div>
+          </div>
+        </div>
+        <div class="planner-features fi d2">
+          <div class="pf-item">
+            <div class="pf-icon">📅</div>
+            <div>
+              <div class="pf-title">오늘 공부할 내용, 내가 정한다</div>
+              <div class="pf-desc">선생님이 정해주는 진도가 아닙니다. 연플래너로 학생 스스로 오늘의 학습 계획을 세우고, 실행하고, 점검합니다.</div>
+            </div>
+          </div>
+          <div class="pf-item">
+            <div class="pf-icon">🤖</div>
+            <div>
+              <div class="pf-title">AI와 함께 공부하는 방법도 계획한다</div>
+              <div class="pf-desc">어떤 과목에서 AI를 활용할지, 어떤 질문을 할지도 연플래너에 기록합니다. AI를 올바르게 쓰는 루틴을 만듭니다.</div>
+            </div>
+          </div>
+          <div class="pf-item">
+            <div class="pf-icon">📊</div>
+            <div>
+              <div class="pf-title">학부모님이 함께 보는 성장 기록</div>
+              <div class="pf-desc">매주 실행률, 완료 과제, 다음 주 목표가 부모님께 공유됩니다. 아이의 성장을 수치로 함께 확인하세요.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── 기타 사항 ─────────────── -->
+<section id="info">
+  <div class="container">
+    <span class="sec-badge warm fi">기타 사항</span>
+    <h2 class="sec-title fi d1">상담·간담회·위치 안내</h2>
+    <p class="sec-sub fi d2">궁금한 사항은 원장님께 직접 연락주세요.</p>
+
+    <div class="info-grid">
+      <!-- 학부모 간담회 -->
+      <div class="event-card fi d1">
+        <div class="sec-badge" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.75);margin-bottom:14px;">📩 학부모 간담회</div>
+        <h3 style="font-family:'Noto Serif KR',serif;font-size:20px;color:white;margin-bottom:8px;font-weight:700;">AI 교육방향 특강 — 직접 보고 판단하세요</h3>
+        <p style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.75;margin-bottom:20px;">수업을 직접 시연합니다. 이진우·박미향 원장이 함께 설명 드립니다. 참석 후 결정하셔도 늦지 않습니다.</p>
+        <div class="event-date-row">
+          <div class="event-date-box">
+            <strong>5월 20일</strong>
+            <span>화요일 저녁 7시</span>
+          </div>
+          <div class="event-date-box">
+            <strong>5월 27일</strong>
+            <span>화요일 저녁 7시</span>
+          </div>
+        </div>
+        <a class="btn btn-warm btn-sm" href="https://jinwooshon-coder.github.io/yeon-ai-kr/invite/" target="_blank" style="margin-top:16px;">초대장 및 신청 →</a>
+      </div>
+
+      <!-- 위치 안내 -->
+      <div class="info-card fi d2">
+        <div class="info-card-header">
+          <div class="info-card-icon teal">📍</div>
+          <div>
+            <div class="info-card-title">오시는 길</div>
+            <div class="info-card-sub">울산 남구 삼산동</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-row-label">주소</div>
+          <div class="info-row-value">울산광역시 남구 월평로 232 1층</div>
+        </div>
+        <div class="info-row">
+          <div class="info-row-label">랜드마크</div>
+          <div class="info-row-value">신세계백화점 울산점 인근<br>삼산동 롯데마트 방면</div>
+        </div>
+        <div class="info-row">
+          <div class="info-row-label">주차</div>
+          <div class="info-row-value">건물 앞 무료 주차 가능</div>
+        </div>
+        <div class="info-row">
+          <div class="info-row-label">대중교통</div>
+          <div class="info-row-value">삼산동 버스 정류장 도보 3분</div>
+        </div>
+        <a class="btn btn-teal btn-sm" href="tel:01041365608" style="margin-top:16px;width:100%;justify-content:center;">📞 010-4136-5608 전화 연결</a>
+      </div>
+
+      <!-- 수업 상담 -->
+      <div class="info-card fi d3">
+        <div class="info-card-header">
+          <div class="info-card-icon warm">💬</div>
+          <div>
+            <div class="info-card-title">수업 상담 안내</div>
+            <div class="info-card-sub">박미향 원장 직접 상담</div>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-row-label">상담 방법</div>
+          <div class="info-row-value">전화 또는 방문 상담<br>(사전 예약 권장)</div>
+        </div>
+        <div class="info-row">
+          <div class="info-row-label">상담 시간</div>
+          <div class="info-row-value">평일 14:00 — 20:00<br>토요일 10:00 — 16:00</div>
+        </div>
+        <div class="info-row">
+          <div class="info-row-label">상담 내용</div>
+          <div class="info-row-value">학습 습관 진단 / 수업 추천<br>AI 교육 도입 상담 / 수업료 안내</div>
+        </div>
+        <div class="info-row">
+          <div class="info-row-label">첫 상담</div>
+          <div class="info-row-value">무료 · 부담 없이 오세요</div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="info-card fi d4">
+        <div class="info-card-header">
+          <div class="info-card-icon sage">❓</div>
+          <div>
+            <div class="info-card-title">자주 묻는 질문</div>
+            <div class="info-card-sub">학부모님이 많이 물어보시는 것들</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">AI 수업, 정말 초등학생에게도 맞나요?</div>
+          <div class="faq-a">네. 오히려 초등 때 시작할수록 좋습니다. 연플래닝의 AI 수업은 도구 사용법이 아니라 "AI에게 어떻게 질문할까"를 가르칩니다. 초등 4학년부터 충분히 소화할 수 있습니다.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">자기주도 학습이 어렵지 않을까요?</div>
+          <div class="faq-a">처음엔 낯설 수 있습니다. 그래서 연플래닝은 선생님이 옆에서 함께 계획을 잡아갑니다. 1~2주면 아이 스스로 습관이 잡히기 시작합니다.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">학원 수업 외에 숙제가 많은가요?</div>
+          <div class="faq-a">숙제의 양보다 질을 봅니다. "오늘 스스로 정한 공부"가 숙제입니다. 강제적인 숙제보다 아이가 스스로 실행한 계획을 점검하는 방식으로 진행됩니다.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q" onclick="toggleFaq(this)">수업료는 어떻게 되나요?</div>
+          <div class="faq-a">수업 조합과 학년에 따라 다릅니다. 상담 시 자세히 안내해 드립니다. 첫 상담은 무료이며, 부담 없이 방문해 주세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── CTA ─────────────── -->
+<section id="cta">
+  <div class="container">
+    <h2 class="cta-title fi">직접 보고 판단하세요.<br>연플래닝이 보여드립니다.</h2>
+    <p class="cta-sub fi d1">
+      5월 20일 · 27일 화요일 저녁 7시<br>
+      학부모 간담회에서 AI 수업을 직접 시연합니다.
+    </p>
+    <div class="cta-btns fi d2">
+      <a class="btn btn-warm" href="https://jinwooshon-coder.github.io/yeon-ai-kr/invite/" target="_blank">📩 간담회 초대장 열기</a>
+      <a class="btn btn-ghost" href="tel:01041365608">📞 원장 직통 전화</a>
+    </div>
+    <div class="contact-row fi d3">
+      📍 울산 남구 월평로 232 1층 &nbsp;|&nbsp; <a href="tel:01041365608">010-4136-5608</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── FOOTER ─────────────── -->
+<footer>
+  <strong>연플래닝 학원 삼산점</strong><br>
+  울산광역시 남구 월평로 232 1층 · 초등 4학년 ~ 고등 2학년<br>
+  대표 원장 이진우 · 삼산점 원장 박미향<br>
+  <br>
+  <span style="opacity:.4;">© 2026 연플래닝 · 이진우, 박미향 원장 드림</span>
+</footer>
+
+<!-- 플로팅 전화 -->
+<a class="fab" href="tel:01041365608" title="전화 연결">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.74a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 16z"/>
+  </svg>
+</a>
+
+<!-- ─────────────── 관리자 로그인 모달 ─────────────── -->
+<div class="modal-overlay" id="loginModal" onclick="closeLoginIfOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeLogin()">✕</button>
+    <div class="modal-logo">연</div>
+    <h3>관리자 로그인</h3>
+    <p class="modal-sub">연플래닝 삼산점 관리자 페이지</p>
+    <div class="modal-field">
+      <label class="modal-label">아이디</label>
+      <input class="modal-input" type="text" placeholder="관리자 아이디를 입력하세요" id="adminId">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">비밀번호</label>
+      <input class="modal-input" type="password" placeholder="비밀번호를 입력하세요" id="adminPw" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="modal-btn" onclick="doLogin()">로그인</button>
+    <p class="modal-note">관리자 계정이 없으시면 이진우 원장에게 문의하세요.<br><a href="tel:01041365608" style="color:var(--deep);">010-4136-5608</a></p>
+  </div>
+</div>
+
+<script>
+/* ── nav scroll ── */
+const navEl = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  navEl.classList.toggle('scrolled', window.scrollY > 40);
+  updateActiveTab();
+});
+
+/* ── 섹션 이동 ── */
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const offset = 70;
+  const top = el.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
+
+/* ── 탭 활성화 ── */
+const sections = ['about','thoughts','classes','info'];
+function updateActiveTab() {
+  const scrollY = window.scrollY + 120;
+  let current = '';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.offsetTop <= scrollY) current = id;
+  });
+  document.querySelectorAll('.nav-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', sections[i] === current);
+  });
+}
+
+/* ── 수업 탭 ── */
+function switchClass(type) {
+  document.querySelectorAll('.class-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.class-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pane-' + type).classList.add('active');
+  event.target.classList.add('active');
+  // 새로 보이는 요소 fade-in 트리거
+  setTimeout(() => {
+    document.querySelectorAll('#pane-' + type + ' .fi').forEach(el => {
+      observer.observe(el);
+    });
+  }, 50);
+}
+
+/* ── 옵션 메뉴 ── */
+function toggleOptions() {
+  document.getElementById('optMenu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!document.getElementById('optBtn').contains(e.target)) {
+    document.getElementById('optMenu').classList.remove('open');
+  }
+});
+
+/* ── 관리자 로그인 모달 ── */
+function openLogin() {
+  document.getElementById('loginModal').classList.add('open');
+  setTimeout(() => document.getElementById('adminId').focus(), 300);
+}
+function closeLogin() {
+  document.getElementById('loginModal').classList.remove('open');
+}
+function closeLoginIfOutside(e) {
+  if (e.target === document.getElementById('loginModal')) closeLogin();
+}
+function doLogin() {
+  const id = document.getElementById('adminId').value;
+  const pw = document.getElementById('adminPw').value;
+  if (!id || !pw) { alert('아이디와 비밀번호를 입력해 주세요.'); return; }
+  alert('관리자 시스템이 준비 중입니다.\n문의: 010-4136-5608');
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLogin();
+});
+
+/* ── FAQ 토글 ── */
+function toggleFaq(el) {
+  el.parentElement.classList.toggle('open');
+}
+
+/* ── fade-in observer ── */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('on'); observer.unobserve(e.target); }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fi').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
