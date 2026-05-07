@@ -1493,7 +1493,7 @@ function adminGoMain(){
   S.studentName='연소사';
   S.isDemo=false;
   // API 키 없으면 경고
-  if(!S.key){showToast('⚠️ 먼저 API 키를 저장해주세요!');return;}
+  // API 키 체크 불필요 — Firebase Functions 서버에서 처리
   initMain();
   // 선생님 모드로 시작
   setTimeout(()=>setMode('teacher'),100);
@@ -1505,7 +1505,7 @@ function teacherGoMain(){
   S.isTeacher=true;
   S.studentName=null; // 선생님은 학생 목록에 저장 안 함
   S.isDemo=false;
-  if(!S.key){showToast('⚠️ API 키를 먼저 저장해주세요!');return;}
+  // API 키 체크 불필요 — Firebase Functions 서버에서 처리
   initMain();
   setTimeout(()=>setMode('teacher'),100);
   showScreen('s-main');
@@ -3634,7 +3634,7 @@ function closeWS(){
 
 // 워크시트 생성 (Claude API)
 async function genWorksheet(){
-  if(!S.key){showToast('API 키가 없어요. 선생님 설정에서 먼저 입력해주세요!');return;}
+  // API 키 체크 불필요 — Firebase Functions 서버에서 처리
   const grade=parseInt(document.getElementById('ws-grade-sel').value)||4;
   const unitNum=parseInt(document.getElementById('ws-unit-sel').value)||3;
   const studentName=(document.getElementById('ws-student-sel').value)||null;
