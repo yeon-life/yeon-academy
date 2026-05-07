@@ -982,16 +982,7 @@ function updateUsageDisplay(remaining) {
   </div>
   <div class="cont" style="max-width:600px;margin:0 auto;">
 
-    <!-- API 키 -->
-    <div class="card">
-      <div class="sl">🔑 API 키 (학생에게 비공개)</div>
-      <div class="fg" style="margin-top:10px;">
-        <label>Claude API 키</label>
-        <input type="password" id="set-key" autocomplete="off" placeholder="sk-ant-api03-..."/>
-        <div class="hint-txt">이 기기에만 저장돼요. 학생들에게는 절대 보이지 않아요.</div>
-      </div>
-      <button class="btn btn-pri" onclick="saveKey()">저장하기</button>
-    </div>
+    <!-- API 키는 서버(Firebase Functions)에만 있음 — 화면에 표시 안 함 -->
 
     <!-- 학급 코드 -->
     <div class="card">
@@ -1141,19 +1132,13 @@ function updateUsageDisplay(remaining) {
   </div>
   <div class="cont" style="max-width:700px;margin:0 auto;">
 
-    <!-- API 키 관리 -->
+    <!-- API 키는 Firebase Functions 서버에만 저장 — 관리자도 여기서 입력 불필요 -->
     <div class="card" style="border:2px solid #37334f;">
-      <div class="sl">🔑 API 키 관리</div>
-      <div style="font-size:13px;color:var(--mid);margin-bottom:12px;">선생님들에게는 절대 공개되지 않아요. 연소사님만 여기서 설정해요.</div>
-      <div class="fg">
-        <label>Claude API 키</label>
-        <input type="password" id="admin-apikey" autocomplete="off" placeholder="sk-ant-api03-..."/>
+      <div class="sl">🔒 API 상태</div>
+      <div style="font-size:14px;color:var(--mid);text-align:center;padding:16px;">
+        API 키는 Firebase 서버에 안전하게 저장되어 있어요.<br>
+        <span style="color:var(--green);font-weight:700;">외부에 절대 노출되지 않아요 ✅</span>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-pri" onclick="adminSaveKey()" style="flex:2;">저장하기</button>
-        <button onclick="toggleShowKey()" style="flex:1;background:var(--sage);border:none;border-radius:14px;padding:12px;font-family:inherit;font-size:13px;font-weight:700;color:var(--deep);cursor:pointer;" id="show-key-btn">보기</button>
-      </div>
-      <div id="admin-key-status" style="margin-top:10px;font-size:13px;text-align:center;"></div>
     </div>
 
     <!-- 관리자 코드 변경 -->
@@ -1786,7 +1771,12 @@ function setNav(tab){
   }
 }
 function goSettings(){
-  document.getElementById('set-key').value=S.key;
+  const code = prompt('선생님 비밀번호를 입력하세요 (4자리)');
+  if(code === null) return;
+  if(code !== getAdminCode()){
+    showToast('비밀번호가 틀렸어요 ❌');
+    return;
+  }
   document.getElementById('set-school').value=S.school;
   document.getElementById('set-classcode').value=localStorage.getItem('sp_class_code')||'';
   renderStudentAdmin();
