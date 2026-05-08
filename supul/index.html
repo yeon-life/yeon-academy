@@ -1033,6 +1033,15 @@ function updateUsageDisplay(remaining) {
       <div style="font-size:11px;color:var(--mid);margin-top:10px;">QR 코드로 학생들이 바로 접속할 수 있어요</div>
     </div>
 
+    <!-- 수업 모드 -->
+    <div class="card">
+      <div class="sl">🔒 수업 모드</div>
+      <div style="font-size:13px;color:var(--mid);margin:8px 0 12px;">수업 중 화면을 잠가요. 잠금 해제는 선생님 비밀번호 필요.</div>
+      <button onclick="startClassMode()" style="width:100%;background:linear-gradient(135deg,#1a3a2e,#2d5a46);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:white;cursor:pointer;">
+        🔒 수업 모드 시작
+      </button>
+    </div>
+
     <div class="card" style="text-align:center;">
       <div style="font-size:36px;margin-bottom:6px;">🌿</div>
       <div style="font-weight:900;font-size:15px;color:var(--deep);">수풀AI v2.1 · 연플래닝 초등부용</div>
@@ -1213,7 +1222,7 @@ function updateUsageDisplay(remaining) {
           </select>
         </div>
       </div>
-      <button onclick="addStudentByTeacher()" style="width:100%;background:var(--green);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:white;cursor:pointer;margin-bottom:12px;">
+      <button id="add-student-btn" onclick="addStudentByTeacher()" style="width:100%;background:var(--green);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:white;cursor:pointer;margin-bottom:12px;">
         ＋ 학생 등록하고 비밀번호 발급
       </button>
       <div id="new-stu-result" style="margin-bottom:14px;"></div>
@@ -1221,6 +1230,9 @@ function updateUsageDisplay(remaining) {
         🔄 전체 학생 목록 불러오기
       </button>
       <div id="student-pin-list"></div>
+      <button id="bulk-reset-btn" onclick="resetAllPins()" style="display:none;width:100%;background:#fee2e2;border:2px solid #fca5a5;border-radius:12px;padding:10px;font-family:inherit;font-size:13px;font-weight:700;color:#dc2626;cursor:pointer;margin-top:10px;">
+        🔄 전체 PIN 일괄 초기화
+      </button>
     </div>
 
     <!-- 초기화 -->
@@ -1304,6 +1316,7 @@ function openAdminPanel(){
   renderAdminStats();
   showScreen('s-admin');
   loadStudentPinList();
+  updateAddStudentBtn();
 }
 // ══════════════════════════
 //  학생 PIN 관리 (선생님 전용)
@@ -1352,7 +1365,9 @@ async function loadStudentPinList(){
     });
     const data=await r.json();
     if(!r.ok||!data.students){el.innerHTML='<div style="color:#dc2626;font-size:13px;">불러오기 실패</div>';return;}
-    if(!data.students.length){el.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:12px;">등록된 학생 없음</div>';return;}
+    const bulkBtn=document.getElementById('bulk-reset-btn');
+    if(!data.students.length){el.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:12px;">등록된 학생 없음</div>';if(bulkBtn)bulkBtn.style.display='none';return;}
+    if(bulkBtn)bulkBtn.style.display='block';
     el.innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--mid);margin-bottom:8px;">등록 학생 ${data.students.length}명</div>`+
       data.students.map(s=>`
         <div style="display:flex;align-items:center;justify-content:space-between;background:${s.active?'white':'#f5f5f5'};border:2px solid ${s.active?'var(--green-lt)':'#e0e0e0'};border-radius:14px;padding:12px 14px;margin-bottom:8px;">
@@ -1382,6 +1397,70 @@ async function resetStudentPinByTeacher(studentName){
       </div>`;
     loadStudentPinList();
   }catch(e){showToast('연결 오류: '+e.message);}
+}
+
+async function resetAllPins(){
+  const adminCode=getAdminCode();
+  const classCode=getClassCode();
+  let students=[];
+  try{
+    const r=await fetch(FUNCTIONS_BASE+'/listStudents',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({adminCode,classCode})
+    });
+    const data=await r.json();
+    if(!r.ok||!data.students||!data.students.length){showToast('학생 목록을 불러올 수 없어요');return;}
+    students=data.students;
+  }catch(e){showToast('오류: '+e.message);return;}
+  if(!confirm(`${students.length}명 전체 PIN을 새로 발급하시겠습니까?\n기존 PIN은 모두 사용 불가가 됩니다.`))return;
+  const res=document.getElementById('new-stu-result');
+  res.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">초기화 중...</div>';
+  const results=[];
+  for(const s of students){
+    try{
+      const r=await fetch(FUNCTIONS_BASE+'/resetStudentPin',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({adminCode,classCode,studentName:s.name})
+      });
+      const data=await r.json();
+      if(data.success)results.push({name:data.studentName,pin:data.pin});
+    }catch(e){}
+  }
+  res.innerHTML=`
+    <div style="background:var(--mint);border:2px solid var(--green);border-radius:16px;padding:16px;">
+      <div style="font-weight:900;font-size:14px;color:var(--deep);margin-bottom:10px;">🔄 전체 PIN 초기화 완료 (${results.length}/${students.length}명)</div>
+      ${results.map(r=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--sage);">
+          <span style="font-size:14px;font-weight:700;">${r.name}</span>
+          <span style="font-size:20px;font-weight:900;color:var(--green);letter-spacing:4px;">${r.pin}</span>
+        </div>`).join('')}
+    </div>`;
+  loadStudentPinList();
+}
+
+// ── 수업 모드 ──
+function startClassMode(){
+  const el=document.getElementById('class-mode-overlay');
+  el.style.display='flex';
+}
+function tryExitClassMode(){
+  const m=document.getElementById('class-unlock-modal');
+  m.style.display='flex';
+  document.getElementById('class-unlock-pin').value='';
+  document.getElementById('class-unlock-err').textContent='';
+  setTimeout(()=>document.getElementById('class-unlock-pin').focus(),100);
+}
+function confirmExitClassMode(){
+  const pin=document.getElementById('class-unlock-pin').value.trim();
+  if(pin===getAdminCode()){
+    document.getElementById('class-unlock-modal').style.display='none';
+    document.getElementById('class-mode-overlay').style.display='none';
+    showToast('수업 모드 해제됐어요 ✅');
+  } else {
+    document.getElementById('class-unlock-err').textContent='비밀번호가 틀렸어요';
+    document.getElementById('class-unlock-pin').value='';
+    document.getElementById('class-unlock-pin').focus();
+  }
 }
 
 function renderAdminStudents(){
@@ -1830,6 +1909,16 @@ function saveClassCode(){
   if(!c){showToast('학급 코드를 입력해주세요');return;}
   localStorage.setItem('sp_class_code',c);
   showToast('학급 코드 저장 완료! ✅ 학생들에게 알려주세요');
+  updateAddStudentBtn();
+}
+function updateAddStudentBtn(){
+  const btn=document.getElementById('add-student-btn');
+  if(!btn)return;
+  const isSet=!!localStorage.getItem('sp_class_code');
+  btn.disabled=!isSet;
+  btn.style.opacity=isSet?'1':'0.45';
+  btn.style.cursor=isSet?'pointer':'not-allowed';
+  btn.title=isSet?'':'선생님 설정에서 학급 코드를 먼저 저장해주세요';
 }
 function renderStudentAdmin(){
   const students=getStudents();
@@ -3919,5 +4008,35 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+
+<!-- ══════════════════════════════
+     수업 모드 잠금 오버레이
+══════════════════════════════ -->
+<div id="class-mode-overlay" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1a3a2e,#2d5a46);z-index:9999;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+  <div style="font-size:80px;margin-bottom:16px;">🌿</div>
+  <div style="color:white;font-size:30px;font-weight:900;margin-bottom:8px;">수업 중</div>
+  <div style="color:rgba(255,255,255,.65);font-size:15px;margin-bottom:56px;">열심히 공부하는 중이에요</div>
+  <button onclick="tryExitClassMode()" style="background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35);border-radius:16px;padding:12px 28px;font-family:inherit;font-size:14px;font-weight:700;color:white;cursor:pointer;">
+    🔓 잠금 해제
+  </button>
+</div>
+
+<!-- 수업 모드 해제 인증 모달 -->
+<div id="class-unlock-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10000;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:28px;padding:32px 28px;width:90%;max-width:340px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.3);">
+    <div style="font-size:40px;margin-bottom:8px;">🔓</div>
+    <div style="font-size:18px;font-weight:900;color:var(--deep);margin-bottom:6px;">수업 모드 해제</div>
+    <div style="font-size:13px;color:var(--mid);margin-bottom:20px;">선생님 비밀번호를 입력하세요</div>
+    <input type="password" id="class-unlock-pin" maxlength="8" inputmode="numeric"
+      style="width:160px;text-align:center;font-size:28px;font-weight:900;letter-spacing:8px;border:3px solid var(--green-lt);border-radius:16px;padding:12px;font-family:inherit;outline:none;display:block;margin:0 auto 16px;"
+      onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--green-lt)'"
+      onkeydown="if(event.key==='Enter')confirmExitClassMode()"/>
+    <div style="display:flex;gap:10px;">
+      <button onclick="confirmExitClassMode()" style="flex:2;background:var(--green);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:white;cursor:pointer;">해제</button>
+      <button onclick="document.getElementById('class-unlock-modal').style.display='none'" style="flex:1;background:var(--sage);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:var(--deep);cursor:pointer;">취소</button>
+    </div>
+    <div id="class-unlock-err" style="margin-top:10px;font-size:13px;color:#dc2626;min-height:18px;"></div>
+  </div>
+</div>
 </body>
 </html>
