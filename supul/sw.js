@@ -1,5 +1,5 @@
-// 수풀AI 서비스 워커 — 2026-05-08 v2 (선생님 모달 인증 + PWA 아이콘 추가 반영)
-const CACHE = 'supul-ai-v2-20260508';
+// 수풀AI 서비스 워커 — 2026-05-08 v3 (분점 공유 안전 빌드 — 일반 화면 API 키 노출 전면 제거)
+const CACHE = 'supul-ai-v3-20260508-secure';
 const ASSETS = [
   '/yeon-academy/supul/',
   '/yeon-academy/supul/index.html',
