@@ -982,6 +982,20 @@ function updateUsageDisplay(remaining) {
   </div>
   <div class="cont" style="max-width:600px;margin:0 auto;">
 
+    <!-- AI 도우미 -->
+    <div class="card" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid var(--green);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:36px;">🤖</span>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:900;color:var(--deep);">AI 도우미</div>
+          <div style="font-size:12px;color:var(--mid);">기능 안내 · 설정 변경 · 관리자 요청까지</div>
+        </div>
+        <button onclick="openTeacherChat()" style="background:var(--green);border:none;border-radius:14px;padding:10px 18px;font-family:inherit;font-size:14px;font-weight:700;color:white;cursor:pointer;">
+          대화하기
+        </button>
+      </div>
+    </div>
+
     <!-- 학급 코드 -->
     <div class="card">
       <div class="sl">🔐 학급 코드 (학생 등록용)</div>
@@ -1259,11 +1273,34 @@ function updateUsageDisplay(remaining) {
       </button>
     </div>
 
-    <!-- AI 기능 건의 이력 -->
+    <!-- 선생님 요청 수신함 -->
     <div class="card" style="border:2px solid #c7d2fe;">
-      <div class="sl" style="color:#4338ca;">🤖 AI 기능 건의 이력</div>
-      <div style="font-size:12px;color:var(--mid);margin-bottom:10px;">AI 어드바이저가 제안하고 건의한 기능 목록</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="sl" style="color:#4338ca;margin-bottom:0;">📬 선생님 요청 수신함</div>
+        <button onclick="renderSuggestionLog()" style="background:var(--sage);border:none;border-radius:10px;padding:5px 10px;font-family:inherit;font-size:12px;font-weight:700;color:var(--deep);cursor:pointer;">🔄</button>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-bottom:10px;">선생님 AI 도우미가 관리자에게 전달한 기능 요청</div>
       <div id="suggestion-log"></div>
+    </div>
+
+    <!-- 관리자 AI 어드바이저 채팅 -->
+    <div class="card" style="background:linear-gradient(135deg,#f8f4ff,#ede9fe);border:2px solid #a78bfa;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:28px;">🤖</span>
+        <div>
+          <div style="font-size:16px;font-weight:900;color:#4c1d95;">관리자 AI 어드바이저</div>
+          <div style="font-size:11px;color:#7c3aed;">시스템 분석 · 선생님 요청 검토 · 기술 조언</div>
+        </div>
+      </div>
+      <div id="admin-chat-msgs" style="min-height:60px;max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="startVoice('admin-chat-input')" title="음성 입력" style="background:#f3e8ff;border:1.5px solid #d8b4fe;border-radius:12px;padding:10px 12px;font-size:18px;cursor:pointer;flex-shrink:0;">🎤</button>
+        <input id="admin-chat-input" type="text" placeholder="학원 현황 분석, 선생님 요청 검토..."
+          style="flex:1;border:2px solid #d8b4fe;border-radius:12px;padding:10px 14px;font-family:inherit;font-size:14px;outline:none;"
+          onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='#d8b4fe'"
+          onkeydown="if(event.key==='Enter')sendAdminChat()"/>
+        <button onclick="sendAdminChat()" style="background:#7c3aed;border:none;border-radius:12px;padding:10px 16px;color:white;font-size:18px;cursor:pointer;flex-shrink:0;">➤</button>
+      </div>
     </div>
 
     <!-- 초기화 -->
@@ -2279,13 +2316,211 @@ function reportSuggestion(idx){
 function renderSuggestionLog(){
   const el=document.getElementById('suggestion-log');
   if(!el)return;
-  const log=JSON.parse(localStorage.getItem('supul_suggestions')||'[]');
-  if(!log.length){el.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">아직 저장된 건의 없음</div>';return;}
-  el.innerHTML=log.map(item=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--green-lt);">
-      <span style="font-size:10px;color:var(--mid);white-space:nowrap;">${item.date}</span>
-      <span style="font-size:13px;color:var(--deep);flex:1;">${item.text}</span>
-    </div>`).join('');
+  const reqs=JSON.parse(localStorage.getItem('supul_teacher_requests')||'[]');
+  const legacy=JSON.parse(localStorage.getItem('supul_suggestions')||'[]').map(x=>({title:'AI 건의',detail:x.text,date:x.date,status:'참고',type:'advisor'}));
+  const all=[...reqs,...legacy];
+  if(!all.length){el.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">아직 요청 없음</div>';return;}
+  el.innerHTML=all.map((item,i)=>{
+    const isTeacher=item.type!=='advisor';
+    const bg=isTeacher?'#f0f7ff':'#f5f3ff';
+    const badge=isTeacher?'<span style="font-size:10px;background:#dbeafe;color:#1d4ed8;border-radius:8px;padding:2px 7px;font-weight:700;">선생님 요청</span>':'<span style="font-size:10px;background:#ede9fe;color:#7c3aed;border-radius:8px;padding:2px 7px;font-weight:700;">AI 건의</span>';
+    const statusColor=item.status==='처리완료'?'#16a34a':item.status==='대기'?'#d97706':'#6b7280';
+    return `<div style="background:${bg};border-radius:10px;padding:9px 12px;margin-bottom:6px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        ${badge}
+        <span style="font-size:10px;color:var(--mid);">${item.date}</span>
+        <span style="font-size:10px;font-weight:700;color:${statusColor};margin-left:auto;">${item.status||'대기'}</span>
+        ${isTeacher&&item.status!=='처리완료'?`<button onclick="resolveTeacherRequest(${i})" style="background:#dcfce7;border:none;border-radius:8px;padding:2px 8px;font-family:inherit;font-size:10px;font-weight:700;color:#16a34a;cursor:pointer;">완료</button>`:''}
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--deep);">${item.title||''}</div>
+      ${item.detail?`<div style="font-size:11px;color:var(--mid);margin-top:2px;">${item.detail}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function resolveTeacherRequest(idx){
+  const reqs=JSON.parse(localStorage.getItem('supul_teacher_requests')||'[]');
+  if(reqs[idx]) reqs[idx].status='처리완료';
+  localStorage.setItem('supul_teacher_requests',JSON.stringify(reqs));
+  renderSuggestionLog();
+  showToast('✅ 처리 완료 표시');
+}
+
+// ══════════════════════════
+//  음성 입력 (무료 Web Speech API)
+// ══════════════════════════
+function startVoice(inputId){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){showToast('이 브라우저는 음성 인식을 지원하지 않아요');return;}
+  const rec=new SR();
+  rec.lang='ko-KR'; rec.interimResults=false; rec.maxAlternatives=1;
+  showToast('🎤 말씀해주세요...');
+  rec.onresult=e=>{
+    const t=e.results[0][0].transcript;
+    const el=document.getElementById(inputId);
+    if(el){el.value=t;el.focus();}
+    // 채팅 입력이면 자동 전송
+    if(inputId==='teacher-chat-input') sendTeacherChat();
+    else if(inputId==='admin-chat-input') sendAdminChat();
+  };
+  rec.onerror=e=>{if(e.error!=='no-speech') showToast('음성 인식 오류: '+e.error);};
+  rec.start();
+}
+
+// ══════════════════════════
+//  선생님 AI 도우미 채팅
+// ══════════════════════════
+let _tchat=[];
+function openTeacherChat(){
+  const sheet=document.getElementById('teacher-chat-sheet');
+  sheet.style.display='flex';
+  if(!_tchat.length){
+    _appendTchat('ai','안녕하세요 선생님! 🌿\n저는 수풀AI 도우미예요.\n\n• 설정 방법이나 기능 설명\n• 학생 인지수준·메모 변경\n• 관리자에게 기능 요청 전달\n\n무엇이든 편하게 말씀해주세요 😊');
+  }
+  setTimeout(()=>document.getElementById('teacher-chat-input').focus(),300);
+}
+function closeTeacherChat(){
+  document.getElementById('teacher-chat-sheet').style.display='none';
+}
+function _appendTchat(role,text){
+  _tchat.push({role,text});
+  const box=document.getElementById('teacher-chat-msgs');
+  if(!box)return;
+  const isAI=role==='ai';
+  const wrap=document.createElement('div');
+  wrap.style.cssText=`display:flex;${isAI?'':'flex-direction:row-reverse;'}gap:8px;align-items:flex-end;`;
+  const bbl=document.createElement('div');
+  bbl.style.cssText=`max-width:82%;padding:10px 14px;border-radius:${isAI?'4px 16px 16px 16px':'16px 16px 4px 16px'};font-size:14px;line-height:1.6;white-space:pre-wrap;word-break:break-word;background:${isAI?'var(--mint)':'var(--green)'};color:${isAI?'var(--deep)':'white'};`;
+  bbl.textContent=text;
+  wrap.appendChild(bbl);
+  box.appendChild(wrap);
+  box.scrollTop=box.scrollHeight;
+}
+async function sendTeacherChat(){
+  const inp=document.getElementById('teacher-chat-input');
+  const msg=(inp.value||'').trim();
+  if(!msg)return;
+  inp.value='';
+  _appendTchat('user',msg);
+  // 컨텍스트 구성
+  const students=getStudents();
+  const allH=students.flatMap(s=>getHist(s.name));
+  const hard=[...new Set(allH.filter(r=>r.understanding==='hard').map(r=>r.concept||'').filter(Boolean))].slice(0,5);
+  const inactive=students.filter(s=>{const h=getHist(s.name);return!h.length||(Date.now()-Math.max(...h.map(r=>r.id||0)))>3*86400000;}).map(s=>s.name);
+  const reqs=JSON.parse(localStorage.getItem('supul_teacher_requests')||'[]');
+  const sysP=`당신은 수풀AI 학원 관리 도우미입니다. 선생님과 한국어로 친근하게 대화하세요.
+
+현재 학원 현황:
+- 등록 학생: ${students.length}명 (${students.map(s=>s.name+' '+s.grade+'학년').join(', ')||'없음'})
+- 총 학습: ${allH.length}건 / 어려운 주제: ${hard.join(', ')||'없음'} / 3일 미접속: ${inactive.join(', ')||'없음'}
+- 기존 요청 ${reqs.length}건
+
+[선생님 직접 가능한 것]
+• 학생 인지수준 조정 → [ACTION:SET_COG:이름:레벨(1~6)]
+• 메모 저장 → [ACTION:ADD_NOTE:이름:내용]
+• 학부모 리포트, 수업 모드, 학생 등록/삭제 (방법 안내)
+
+[관리자(개발자)가 필요한 것]
+• 새 화면/기능 추가, AI 프롬프트 수정, 서버 설정, 디자인 변경 등
+
+관리자 요청이 필요한 경우 먼저 "관리자에게 요청서를 보낼까요?" 물어보세요.
+선생님이 "네/응/보내줘/좋아" 등으로 동의하면 → 응답 마지막에 [ACTION:REQUEST:제목:상세설명] 추가.
+ACTION 태그는 처리 후 자동 숨겨지니 답변 텍스트에 포함하지 마세요.
+답변은 2~4문장으로 간결하게.`;
+  // 대화 이력 포함
+  const histText=_tchat.slice(-8).map(m=>`${m.role==='ai'?'AI':'선생님'}: ${m.text}`).join('\n');
+  const fullMsg=histText.length>20?`[이전 대화]\n${histText}\n\n[현재 질문]\n${msg}`:msg;
+  // 로딩 표시
+  const loading=document.createElement('div');
+  loading.style.cssText='display:flex;gap:8px;align-items:flex-end;';
+  loading.innerHTML='<div style="padding:10px 14px;border-radius:4px 16px 16px 16px;background:var(--mint);font-size:20px;letter-spacing:4px;color:var(--mid);">···</div>';
+  const box=document.getElementById('teacher-chat-msgs');
+  box.appendChild(loading); box.scrollTop=box.scrollHeight;
+  try{
+    const data=await callClaudeViaServer({systemPrompt:sysP,userContent:fullMsg,model:'claude-haiku-4-5-20251001',maxTokens:500,isTeacher:true});
+    loading.remove();
+    let resp=data.content;
+    // 액션 파싱 및 실행
+    const acts=[...resp.matchAll(/\[ACTION:([^\]]+)\]/g)];
+    resp=resp.replace(/\[ACTION:[^\]]+\]/g,'').trim();
+    acts.forEach(m=>{
+      const parts=m[1].split(':');
+      _executeTeacherAction(parts[0],parts.slice(1));
+    });
+    _appendTchat('ai',resp);
+  }catch(e){loading.remove();_appendTchat('ai','죄송해요, 잠시 오류가 발생했어요. 다시 시도해주세요. 😅');}
+}
+function _executeTeacherAction(type,params){
+  if(type==='SET_COG'){
+    const[name,lv]=params;
+    setCogLevel(name,parseInt(lv));
+  }else if(type==='ADD_NOTE'){
+    const name=params[0];
+    const note=params.slice(1).join(':');
+    saveStudentNote(name,note);
+    renderStudentAdmin();
+  }else if(type==='REQUEST'){
+    const title=params[0];
+    const detail=params.slice(1).join(':');
+    const key='supul_teacher_requests';
+    const arr=JSON.parse(localStorage.getItem(key)||'[]');
+    arr.unshift({title,detail,date:new Date().toLocaleDateString('ko-KR'),status:'대기',type:'teacher'});
+    if(arr.length>60) arr.splice(60);
+    localStorage.setItem(key,JSON.stringify(arr));
+    renderSuggestionLog();
+  }
+}
+
+// ══════════════════════════
+//  관리자 AI 채팅
+// ══════════════════════════
+let _achat=[];
+function _appendAchat(role,text){
+  _achat.push({role,text});
+  const box=document.getElementById('admin-chat-msgs');
+  if(!box)return;
+  const isAI=role==='ai';
+  const wrap=document.createElement('div');
+  wrap.style.cssText=`display:flex;${isAI?'':'flex-direction:row-reverse;'}gap:8px;align-items:flex-end;`;
+  const bbl=document.createElement('div');
+  bbl.style.cssText=`max-width:82%;padding:9px 13px;border-radius:${isAI?'4px 14px 14px 14px':'14px 14px 4px 14px'};font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;background:${isAI?'#ede9fe':'#7c3aed'};color:${isAI?'#1e1b4b':'white'};`;
+  bbl.textContent=text;
+  wrap.appendChild(bbl);
+  box.appendChild(wrap);
+  box.scrollTop=box.scrollHeight;
+}
+async function sendAdminChat(){
+  const inp=document.getElementById('admin-chat-input');
+  const msg=(inp.value||'').trim();
+  if(!msg)return;
+  inp.value='';
+  _appendAchat('user',msg);
+  const students=getStudents();
+  const allH=students.flatMap(s=>getHist(s.name));
+  const reqs=JSON.parse(localStorage.getItem('supul_teacher_requests')||'[]');
+  const pendingReqs=reqs.filter(r=>r.status==='대기').map(r=>`• [${r.date}] ${r.title}: ${r.detail||''}`).join('\n');
+  const sysP=`당신은 수풀AI 시스템 관리자(연소사님) 전용 AI 어드바이저입니다.
+
+학원 현황: 학생 ${students.length}명, 총 학습 ${allH.length}건
+
+[선생님 대기 요청]
+${pendingReqs||'없음'}
+
+관리자 권한으로 할 수 있는 것: API 키 설정, 코드 배포, 서버 설정, 기능 구현 의사결정.
+코드 변경이 필요한 요청은 "다음 세션에서 Claude Code로 처리하면 됩니다"라고 안내하세요.
+기술적이고 구체적인 조언을 제공하되 이해하기 쉽게 설명하세요.
+3문장 이내로 간결하게.`;
+  const histText=_achat.slice(-6).map(m=>`${m.role==='ai'?'AI':'관리자'}: ${m.text}`).join('\n');
+  const fullMsg=histText.length>20?`[이전 대화]\n${histText}\n\n[질문]\n${msg}`:msg;
+  const loading=document.createElement('div');
+  loading.style.cssText='display:flex;gap:8px;';
+  loading.innerHTML='<div style="padding:9px 13px;border-radius:4px 14px 14px 14px;background:#ede9fe;font-size:18px;letter-spacing:4px;color:#7c3aed;">···</div>';
+  const box=document.getElementById('admin-chat-msgs');
+  box.appendChild(loading); box.scrollTop=box.scrollHeight;
+  try{
+    const data=await callClaudeViaServer({systemPrompt:sysP,userContent:fullMsg,model:'claude-haiku-4-5-20251001',maxTokens:400,isTeacher:true});
+    loading.remove();
+    _appendAchat('ai',data.content.trim());
+  }catch(e){loading.remove();_appendAchat('ai','오류가 발생했어요. 잠시 후 다시 시도해주세요.');}
 }
 
 function setCogLevel(name, lv){
@@ -4368,6 +4603,30 @@ if('serviceWorker' in navigator){
       <button onclick="document.getElementById('class-unlock-modal').style.display='none'" style="flex:1;background:var(--sage);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:var(--deep);cursor:pointer;">취소</button>
     </div>
     <div id="class-unlock-err" style="margin-top:10px;font-size:13px;color:#dc2626;min-height:18px;"></div>
+  </div>
+</div>
+
+<!-- 🤖 선생님 AI 도우미 채팅 시트 -->
+<div id="teacher-chat-sheet" style="display:none;position:fixed;inset:0;z-index:1600;background:rgba(0,0,0,.45);" onclick="if(event.target===this)closeTeacherChat()">
+  <div style="position:absolute;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:white;border-radius:28px 28px 0 0;padding:20px 20px 28px;max-height:88vh;display:flex;flex-direction:column;">
+    <div style="width:40px;height:4px;background:var(--green-lt);border-radius:2px;margin:0 auto 14px;flex-shrink:0;"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-shrink:0;">
+      <span style="font-size:28px;">🤖</span>
+      <div style="flex:1;">
+        <div style="font-size:17px;font-weight:900;color:var(--deep);">AI 도우미</div>
+        <div style="font-size:11px;color:var(--mid);">기능 안내 · 설정 변경 · 관리자 요청</div>
+      </div>
+      <button onclick="closeTeacherChat()" style="background:var(--sage);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div id="teacher-chat-msgs" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:4px;min-height:160px;"></div>
+    <div style="display:flex;gap:6px;margin-top:12px;flex-shrink:0;">
+      <button onclick="startVoice('teacher-chat-input')" title="음성 입력" style="background:var(--mint);border:1.5px solid var(--green-lt);border-radius:12px;padding:10px 12px;font-size:18px;cursor:pointer;flex-shrink:0;">🎤</button>
+      <input id="teacher-chat-input" type="text" placeholder="무엇이든 물어보세요..."
+        style="flex:1;border:2px solid var(--green-lt);border-radius:12px;padding:10px 14px;font-family:inherit;font-size:14px;outline:none;"
+        onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--green-lt)'"
+        onkeydown="if(event.key==='Enter')sendTeacherChat()"/>
+      <button onclick="sendTeacherChat()" style="background:var(--green);border:none;border-radius:12px;padding:10px 16px;color:white;font-size:18px;cursor:pointer;flex-shrink:0;">➤</button>
+    </div>
   </div>
 </div>
 
