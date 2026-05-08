@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>수풀AI 설치하기</title>
+  <link rel="manifest" href="./manifest.json">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Noto Sans KR',sans-serif;background:#f0f7f4;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .card{background:white;border-radius:24px;padding:32px 24px;max-width:380px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.1);}
+    .logo{font-size:64px;margin-bottom:8px;}
+    h1{font-size:28px;font-weight:900;color:#2d5a4e;margin-bottom:6px;}
+    .sub{font-size:15px;color:#666;margin-bottom:28px;}
+    .btn-install{width:100%;background:#4a7c6f;color:white;border:none;border-radius:16px;padding:18px;font-size:18px;font-weight:900;cursor:pointer;margin-bottom:12px;display:none;}
+    .btn-open{width:100%;background:white;color:#4a7c6f;border:2px solid #4a7c6f;border-radius:16px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;text-decoration:none;display:block;}
+    .ios-guide{background:#fff8e1;border-radius:16px;padding:16px;margin-top:20px;text-align:left;display:none;}
+    .ios-guide h3{font-size:14px;font-weight:900;color:#f57c00;margin-bottom:10px;}
+    .ios-guide p{font-size:13px;color:#555;line-height:1.8;}
+    .step{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px;color:#444;}
+    .badge{background:#4a7c6f;color:white;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;}
+    .already{font-size:13px;color:#4a7c6f;margin-top:16px;font-weight:700;display:none;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">🌿</div>
+  <h1>수풀AI</h1>
+  <p class="sub">수풀이와 함께하는 수학 공부! 😊<br>아래 버튼을 눌러 앱을 설치하세요</p>
+
+  <button class="btn-install" id="btn-install" onclick="installApp()">
+    📲 홈 화면에 설치하기
+  </button>
+
+  <a href="./index.html" class="btn-open">바로 시작하기 →</a>
+
+  <div class="ios-guide" id="ios-guide">
+    <h3>📱 iPhone 설치 방법</h3>
+    <div class="step"><div class="badge">1</div> 아래 공유 버튼 <strong>□↑</strong> 탭</div>
+    <div class="step"><div class="badge">2</div> <strong>"홈 화면에 추가"</strong> 선택</div>
+    <div class="step"><div class="badge">3</div> 오른쪽 위 <strong>"추가"</strong> 탭</div>
+  </div>
+
+  <p class="already" id="already">✅ 이미 설치되어 있어요!</p>
+</div>
+
+<script>
+  let deferredPrompt;
+
+  // Android PWA 설치 프롬프트
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('btn-install').style.display = 'block';
+  });
+
+  function installApp() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(r => {
+      if (r.outcome === 'accepted') {
+        document.getElementById('btn-install').style.display = 'none';
+        document.getElementById('already').style.display = 'block';
+      }
+      deferredPrompt = null;
+    });
+  }
+
+  // 이미 설치된 경우
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('btn-install').style.display = 'none';
+    document.getElementById('already').style.display = 'block';
+  });
+
+  // iOS 감지
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  if (isIOS && !isStandalone) {
+    document.getElementById('ios-guide').style.display = 'block';
+  }
+  if (isStandalone) {
+    document.getElementById('already').style.display = 'block';
+  }
+
+  // SW 등록
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js', {scope: '/yeon-academy/supul/'});
+  }
+</script>
+</body>
+</html>
