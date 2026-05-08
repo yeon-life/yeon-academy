@@ -1010,6 +1010,30 @@ function updateUsageDisplay(remaining) {
       <button class="btn btn-ghost" onclick="renderStudentAdmin()" style="margin-top:10px;font-size:14px;">🔄 새로고침</button>
     </div>
 
+    <!-- 취약점 통합 -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="sl" style="margin:0;">🎯 주요 취약점 (전체 학생)</div>
+        <button onclick="renderWeakSummary()" style="background:var(--sage);border:none;border-radius:10px;padding:5px 10px;font-family:inherit;font-size:12px;font-weight:700;color:var(--deep);cursor:pointer;">🔄</button>
+      </div>
+      <div id="weak-summary"><div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">불러오는 중...</div></div>
+    </div>
+
+    <!-- 미접속 경보 -->
+    <div class="card" id="inactive-card" style="display:none;border:2px solid #fca5a5;">
+      <div class="sl" style="color:#dc2626;">⚠️ 미접속 학생</div>
+      <div id="inactive-list" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- 인지수준 일괄 조정 -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="sl" style="margin:0;">🧠 인지 수준 일괄 조정</div>
+        <button onclick="renderCogLevelAdmin()" style="background:var(--sage);border:none;border-radius:10px;padding:5px 10px;font-family:inherit;font-size:12px;font-weight:700;color:var(--deep);cursor:pointer;">🔄</button>
+      </div>
+      <div id="cog-level-admin"><div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">불러오는 중...</div></div>
+    </div>
+
     <!-- 다음 시간 준비 -->
     <div class="card" style="text-align:center;">
       <div class="sl" style="text-align:left;">📋 다음 시간 준비</div>
@@ -1235,6 +1259,13 @@ function updateUsageDisplay(remaining) {
       </button>
     </div>
 
+    <!-- AI 기능 건의 이력 -->
+    <div class="card" style="border:2px solid #c7d2fe;">
+      <div class="sl" style="color:#4338ca;">🤖 AI 기능 건의 이력</div>
+      <div style="font-size:12px;color:var(--mid);margin-bottom:10px;">AI 어드바이저가 제안하고 건의한 기능 목록</div>
+      <div id="suggestion-log"></div>
+    </div>
+
     <!-- 초기화 -->
     <div class="card" style="border:2px solid #fca5a5;">
       <div class="sl" style="color:#dc2626;">⚠️ 초기화</div>
@@ -1317,6 +1348,8 @@ function openAdminPanel(){
   showScreen('s-admin');
   loadStudentPinList();
   updateAddStudentBtn();
+  renderSuggestionLog();
+  setTimeout(runAIAdvisor, 1500);
 }
 // ══════════════════════════
 //  학생 PIN 관리 (선생님 전용)
@@ -1922,6 +1955,9 @@ function checkTeacherPin(){
     document.getElementById('set-school').value=S.school;
     document.getElementById('set-classcode').value=localStorage.getItem('sp_class_code')||'';
     renderStudentAdmin();
+    renderWeakSummary();
+    renderInactiveStudents();
+    renderCogLevelAdmin();
     showScreen('s-settings');
   } else {
     document.getElementById('teacher-pin-err').textContent='비밀번호가 틀렸어요. 다시 확인해주세요 🔒';
@@ -1999,6 +2035,15 @@ function renderStudentAdmin(){
       <div style="padding:8px 14px 10px;background:white;">
         <div style="font-size:11px;font-weight:700;color:var(--mid);margin-bottom:4px;">📅 ${today} 학습 기록 · 누적 ${totalRecs}건</div>
         ${todayRows}
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button onclick="openNoteModal('${s.name.replace(/'/g,"\\'")}')" style="flex:1;background:var(--mint);border:1.5px solid var(--green-lt);border-radius:10px;padding:6px;font-family:inherit;font-size:11px;font-weight:700;color:var(--deep);cursor:pointer;">
+            📝 ${getStudentNote(s.name)?'메모 수정':'메모 추가'}
+          </button>
+          <button onclick="generateParentReport('${s.name.replace(/'/g,"\\'")}')" style="flex:1;background:#f0f7ff;border:1.5px solid #93c5fd;border-radius:10px;padding:6px;font-family:inherit;font-size:11px;font-weight:700;color:#1d4ed8;cursor:pointer;">
+            📊 학부모 리포트
+          </button>
+        </div>
+        ${getStudentNote(s.name)?`<div style="margin-top:8px;background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:8px 10px;font-size:12px;color:#92400e;">📝 ${getStudentNote(s.name)}</div>`:''}
       </div>
       ${(()=>{
         const adv=getAdvancedHist(s.name);
@@ -2015,6 +2060,234 @@ function renderStudentAdmin(){
     </div>`;
   }).join('');
 }
+// ══════════════════════════
+//  학생 메모
+// ══════════════════════════
+function getStudentNote(name){
+  const k='supul_note_'+name;
+  return localStorage.getItem(k)||'';
+}
+function saveStudentNote(name,note){
+  localStorage.setItem('supul_note_'+name,note);
+}
+function openNoteModal(name){
+  const modal=document.getElementById('note-modal');
+  if(!modal)return;
+  document.getElementById('note-modal-title').textContent=name+' 메모';
+  document.getElementById('note-input').value=getStudentNote(name);
+  modal._name=name;
+  modal.classList.add('show');
+  setTimeout(()=>document.getElementById('note-input').focus(),200);
+}
+function saveNoteModal(){
+  const modal=document.getElementById('note-modal');
+  if(!modal)return;
+  const name=modal._name;
+  saveStudentNote(name,document.getElementById('note-input').value.trim());
+  modal.classList.remove('show');
+  renderStudentAdmin();
+  showToast('📝 메모 저장 완료');
+}
+
+// ══════════════════════════
+//  선생님용 학부모 리포트
+// ══════════════════════════
+function generateParentReport(name){
+  const modal=document.getElementById('report-modal');
+  if(!modal)return;
+  modal.classList.add('show');
+  const box=document.getElementById('report-text');
+  box.textContent='리포트 생성 중...';
+  const st=getStudent(name)||{};
+  const hist=getHist(name);
+  const today=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+  const recentTopics=hist.slice(0,7).map((r,i)=>`${i+1}. ${r.concept||r.problem||'(사진 문제)'}`).join('\n');
+  const hardItems=hist.filter(r=>r.understanding==='hard').slice(0,3).map(r=>r.concept||r.problem||'');
+  const greatCount=hist.filter(r=>r.understanding==='great').length;
+  const hardCount=hist.filter(r=>r.understanding==='hard').length;
+  const advHist=getAdvancedHist(name);
+  const noteText=getStudentNote(name);
+  const report=[
+    `📋 수풀AI 학습 리포트 — ${today}`,
+    ``,
+    `👦 학생: ${name} (${st.grade||3}학년)`,
+    `⭐ 획득 별: ${st.stars||0}개 · 총 학습: ${hist.length}건`,
+    ``,
+    `[이해도 요약]`,
+    `😊 완전이해 ${greatCount}건 · 😢 어려움 ${hardCount}건`,
+    hardItems.length?`📌 다시 볼 것: ${hardItems.join(', ')}`:'',
+    ``,
+    `[최근 학습 주제]`,
+    recentTopics||'아직 학습 기록이 없어요',
+    advHist.length?`\n[선행 학습]\n${advHist.slice(0,3).map(a=>a.topic).join(', ')}`:'',
+    noteText?`\n[선생님 메모]\n${noteText}`:'',
+    ``,
+    `수풀AI와 함께 열심히 공부하고 있습니다! 😊`,
+  ].filter(l=>l!=='').join('\n');
+  box.textContent=report;
+}
+function copyReport(){
+  const text=document.getElementById('report-text').textContent;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>showToast('📋 복사 완료! 카카오톡에 붙여넣기 하세요 😊'));
+  }else{
+    const ta=document.createElement('textarea');
+    ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    showToast('📋 복사 완료!');
+  }
+}
+
+// ══════════════════════════
+//  취약점 통합 요약
+// ══════════════════════════
+function renderWeakSummary(){
+  const el=document.getElementById('weak-summary');
+  if(!el)return;
+  const students=getStudents();
+  if(!students.length){el.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">등록된 학생 없음</div>';return;}
+  const topicMap={};
+  students.forEach(s=>{
+    getHist(s.name).filter(r=>r.understanding==='hard').forEach(r=>{
+      const key=r.concept||r.problem||'';
+      if(!key)return;
+      topicMap[key]=(topicMap[key]||[]);
+      if(!topicMap[key].includes(s.name)) topicMap[key].push(s.name);
+    });
+  });
+  const sorted=Object.entries(topicMap).sort((a,b)=>b[1].length-a[1].length).slice(0,8);
+  if(!sorted.length){el.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">😊 모든 학생이 잘 이해하고 있어요!</div>';return;}
+  el.innerHTML=sorted.map(([topic,names])=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--green-lt);">
+      <div style="flex:1;font-size:13px;font-weight:700;color:var(--deep);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${topic}</div>
+      <div style="font-size:11px;background:#fff0f0;color:#dc2626;border-radius:8px;padding:2px 8px;white-space:nowrap;">😢 ${names.length}명: ${names.join(', ')}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════
+//  미접속 경보
+// ══════════════════════════
+function renderInactiveStudents(){
+  const card=document.getElementById('inactive-card');
+  const listEl=document.getElementById('inactive-list');
+  if(!card||!listEl)return;
+  const now=Date.now();
+  const THREE_DAYS=3*24*60*60*1000;
+  const students=getStudents();
+  const inactive=students.filter(s=>{
+    const hist=getHist(s.name);
+    if(!hist.length)return true;
+    const last=Math.max(...hist.map(r=>r.id||0));
+    return (now-last)>THREE_DAYS;
+  });
+  if(!inactive.length){card.style.display='none';return;}
+  card.style.display='block';
+  listEl.innerHTML=inactive.map(s=>{
+    const hist=getHist(s.name);
+    let dayStr='학습 기록 없음';
+    if(hist.length){
+      const last=Math.max(...hist.map(r=>r.id||0));
+      const days=Math.floor((now-last)/86400000);
+      dayStr=`마지막 학습 ${days}일 전`;
+    }
+    return `<span style="background:#fee2e2;color:#dc2626;border-radius:10px;padding:4px 10px;font-size:12px;font-weight:700;">${s.name} <span style="font-weight:400;font-size:10px;">(${dayStr})</span></span>`;
+  }).join('');
+}
+
+// ══════════════════════════
+//  인지수준 일괄 조정
+// ══════════════════════════
+function renderCogLevelAdmin(){
+  const el=document.getElementById('cog-level-admin');
+  if(!el)return;
+  const students=getStudents();
+  const CLN=['','🌱초보','🌿기초','🌲보통','🦊능숙','🦅심화','🦁최상'];
+  if(!students.length){el.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">등록된 학생 없음</div>';return;}
+  el.innerHTML=students.map(s=>{
+    const cl=s.cogLevel||s.grade||3;
+    const sn=s.name.replace(/'/g,"\\'");
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--green-lt);">
+      <span style="font-size:13px;font-weight:700;color:var(--deep);width:60px;flex-shrink:0;">${s.name}</span>
+      <div style="display:flex;gap:3px;flex:1;flex-wrap:wrap;">${[1,2,3,4,5,6].map(lv=>`
+        <button onclick="setCogLevel('${sn}',${lv});renderCogLevelAdmin();" style="
+          padding:3px 7px;border-radius:8px;border:1.5px solid ${lv===cl?'var(--green)':'var(--green-lt)'};
+          background:${lv===cl?'var(--green)':'#fff'};color:${lv===cl?'#fff':'var(--deep)'};
+          font-size:10px;font-family:inherit;cursor:pointer;white-space:nowrap;">
+          ${CLN[lv]}</button>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════
+//  AI 어드바이저
+// ══════════════════════════
+let _advisorLastRun=0;
+async function runAIAdvisor(){
+  const now=Date.now();
+  if(now-_advisorLastRun<6*60*60*1000)return; // 6시간 쿨다운
+  _advisorLastRun=now;
+  const students=getStudents();
+  if(!students.length)return;
+  // 현황 요약 생성
+  const totalStudents=students.length;
+  const allHist=students.flatMap(s=>getHist(s.name));
+  const hardTopics=[...new Set(allHist.filter(r=>r.understanding==='hard').map(r=>r.concept||r.problem||'').filter(Boolean))].slice(0,5);
+  const advCount=students.reduce((n,s)=>n+getAdvancedHist(s.name).length,0);
+  const inactive=students.filter(s=>{const h=getHist(s.name);return!h.length||(Date.now()-Math.max(...h.map(r=>r.id||0)))>3*86400000;});
+  const summary=`학원 현황: 학생 ${totalStudents}명, 총 학습 ${allHist.length}건, 어려움 주제 [${hardTopics.join(', ')}], 선행학습 ${advCount}건, 미접속 ${inactive.length}명.`;
+  try{
+    const data=await callClaudeViaServer({
+      systemPrompt:'당신은 학원 관리 전문 AI입니다. 선생님에게 관리 도구 개선 아이디어를 3가지 제안하세요. 각 제안은 한 문장(30자 이내)으로. JSON 배열: ["제안1","제안2","제안3"]',
+      userContent:summary,
+      model:'claude-haiku-4-5-20251001',maxTokens:300
+    });
+    let suggestions=[];
+    try{const m=data.content.match(/\[[\s\S]*?\]/);if(m)suggestions=JSON.parse(m[0]);}catch(e){}
+    if(suggestions.length>0) showAdvisorPopup(suggestions);
+  }catch(e){/* 조용히 실패 */}
+}
+function showAdvisorPopup(suggestions){
+  const popup=document.getElementById('ai-advisor-popup');
+  if(!popup)return;
+  const listEl=document.getElementById('advisor-list');
+  if(listEl) listEl.innerHTML=suggestions.map((s,i)=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--green-lt);">
+      <span style="font-size:12px;background:var(--green);color:white;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">${i+1}</span>
+      <span style="font-size:13px;color:var(--deep);line-height:1.5;">${s}</span>
+      <button onclick="reportSuggestion(${i})" style="background:#f0f7ff;border:1px solid #93c5fd;border-radius:8px;padding:3px 8px;font-family:inherit;font-size:11px;color:#1d4ed8;cursor:pointer;flex-shrink:0;">저장</button>
+    </div>`).join('');
+  popup._suggestions=suggestions;
+  popup.style.display='flex';
+}
+function dismissAdvisor(){
+  const popup=document.getElementById('ai-advisor-popup');
+  if(popup) popup.style.display='none';
+}
+function reportSuggestion(idx){
+  const popup=document.getElementById('ai-advisor-popup');
+  if(!popup)return;
+  const s=popup._suggestions&&popup._suggestions[idx];
+  if(!s)return;
+  const key='supul_suggestions';
+  const log=JSON.parse(localStorage.getItem(key)||'[]');
+  log.unshift({text:s,date:new Date().toLocaleDateString('ko-KR'),saved:true});
+  if(log.length>30) log.splice(30);
+  localStorage.setItem(key,JSON.stringify(log));
+  showToast('📌 건의 사항 저장 완료');
+  renderSuggestionLog();
+}
+function renderSuggestionLog(){
+  const el=document.getElementById('suggestion-log');
+  if(!el)return;
+  const log=JSON.parse(localStorage.getItem('supul_suggestions')||'[]');
+  if(!log.length){el.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">아직 저장된 건의 없음</div>';return;}
+  el.innerHTML=log.map(item=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--green-lt);">
+      <span style="font-size:10px;color:var(--mid);white-space:nowrap;">${item.date}</span>
+      <span style="font-size:13px;color:var(--deep);flex:1;">${item.text}</span>
+    </div>`).join('');
+}
+
 function setCogLevel(name, lv){
   const arr=getStudents();
   const idx=arr.findIndex(s=>normName(s.name)===normName(name));
@@ -4097,5 +4370,37 @@ if('serviceWorker' in navigator){
     <div id="class-unlock-err" style="margin-top:10px;font-size:13px;color:#dc2626;min-height:18px;"></div>
   </div>
 </div>
+
+<!-- 📝 메모 모달 -->
+<div class="modal-overlay" id="note-modal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal-card">
+    <div class="modal-handle"></div>
+    <div id="note-modal-title" style="font-size:20px;font-weight:900;color:var(--deep);margin-bottom:14px;">메모</div>
+    <textarea id="note-input" rows="5" placeholder="학생에 대한 메모를 입력하세요 (선생님만 보임)"
+      style="width:100%;border:2px solid var(--green-lt);border-radius:14px;padding:12px;font-family:inherit;font-size:14px;color:var(--deep);resize:vertical;outline:none;box-sizing:border-box;"
+      onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--green-lt)'"></textarea>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button onclick="saveNoteModal()" style="flex:2;background:var(--green);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:white;cursor:pointer;">저장</button>
+      <button onclick="document.getElementById('note-modal').classList.remove('show')" style="flex:1;background:var(--sage);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:var(--deep);cursor:pointer;">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- 🤖 AI 어드바이저 팝업 -->
+<div id="ai-advisor-popup" style="display:none;position:fixed;inset:0;z-index:2000;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.35);">
+  <div style="background:white;border-radius:28px 28px 0 0;width:100%;max-width:480px;padding:24px 20px 32px;box-shadow:0 -8px 32px rgba(0,0,0,.15);">
+    <div style="width:40px;height:4px;background:var(--green-lt);border-radius:2px;margin:0 auto 16px;"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+      <span style="font-size:28px;">🤖</span>
+      <div>
+        <div style="font-size:17px;font-weight:900;color:var(--deep);">AI 기능 건의</div>
+        <div style="font-size:12px;color:var(--mid);">현재 학원 데이터를 분석한 제안이에요</div>
+      </div>
+    </div>
+    <div id="advisor-list" style="margin-top:12px;"></div>
+    <button onclick="dismissAdvisor()" style="width:100%;background:var(--sage);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:var(--deep);cursor:pointer;margin-top:16px;">닫기</button>
+  </div>
+</div>
+
 </body>
 </html>
