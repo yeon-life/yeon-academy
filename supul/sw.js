@@ -1,5 +1,12 @@
-const CACHE = 'supul-ai-v1';
-const ASSETS = ['/yeon-academy/supul/', '/yeon-academy/supul/index.html'];
+// 수풀AI 서비스 워커 — 2026-05-08 v2 (선생님 모달 인증 + PWA 아이콘 추가 반영)
+const CACHE = 'supul-ai-v2-20260508';
+const ASSETS = [
+  '/yeon-academy/supul/',
+  '/yeon-academy/supul/index.html',
+  '/yeon-academy/supul/manifest.json',
+  '/yeon-academy/supul/icon-192.png',
+  '/yeon-academy/supul/icon-512.png'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
@@ -12,5 +19,6 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 self.addEventListener('fetch', e => {
+  // 네트워크 우선 → 실패 시 캐시 (앱 신규 배포가 즉시 반영됨)
   e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });

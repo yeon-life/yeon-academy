@@ -1121,6 +1121,28 @@ function updateUsageDisplay(remaining) {
 </div>
 
 <!-- ══════════════════════════════
+     선생님 인증 모달 (선생님 설정 진입)
+══════════════════════════════ -->
+<div id="teacher-auth-modal" style="display:none;position:fixed;inset:0;background:rgba(42,46,44,.8);z-index:800;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:28px;padding:32px 28px;width:90%;max-width:360px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.3);">
+    <div style="font-size:40px;margin-bottom:8px;">🔐</div>
+    <div style="font-size:18px;font-weight:900;color:var(--deep);margin-bottom:6px;">선생님 인증</div>
+    <div style="font-size:13px;color:var(--mid);margin-bottom:20px;">선생님 전용 · 비밀번호를 입력하세요</div>
+    <div style="display:flex;justify-content:center;gap:8px;margin-bottom:20px;">
+      <input type="password" id="teacher-pin" maxlength="8" inputmode="numeric"
+        style="width:160px;text-align:center;font-size:28px;font-weight:900;letter-spacing:8px;border:3px solid var(--green-lt);border-radius:16px;padding:12px;font-family:inherit;outline:none;"
+        onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--green-lt)'"
+        onkeydown="if(event.key==='Enter')checkTeacherPin()"/>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="checkTeacherPin()" style="flex:2;background:var(--green);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:white;cursor:pointer;">확인</button>
+      <button onclick="closeTeacherAuth()" style="flex:1;background:var(--sage);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:var(--deep);cursor:pointer;">취소</button>
+    </div>
+    <div id="teacher-pin-err" style="margin-top:10px;font-size:13px;color:#dc2626;min-height:18px;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
      화면 6: 관리자 패널
 ══════════════════════════════ -->
 <div class="screen" id="s-admin">
@@ -1781,16 +1803,34 @@ function setNav(tab){
   }
 }
 function goSettings(){
-  const code = prompt('선생님 비밀번호를 입력하세요 (4자리)');
-  if(code === null) return;
-  if(code !== getAdminCode()){
-    showToast('비밀번호가 틀렸어요 ❌');
-    return;
+  // 선생님 인증 모달 띄우기 (prompt 대신 일관된 UI)
+  openTeacherAuth();
+}
+function openTeacherAuth(){
+  const m=document.getElementById('teacher-auth-modal');
+  if(!m){showToast('인증 모달을 찾을 수 없어요');return;}
+  m.style.display='flex';
+  document.getElementById('teacher-pin').value='';
+  document.getElementById('teacher-pin-err').textContent='';
+  setTimeout(()=>document.getElementById('teacher-pin').focus(),100);
+}
+function closeTeacherAuth(){
+  const m=document.getElementById('teacher-auth-modal');
+  if(m) m.style.display='none';
+}
+function checkTeacherPin(){
+  const pin=document.getElementById('teacher-pin').value.trim();
+  if(pin===getAdminCode()){
+    closeTeacherAuth();
+    document.getElementById('set-school').value=S.school;
+    document.getElementById('set-classcode').value=localStorage.getItem('sp_class_code')||'';
+    renderStudentAdmin();
+    showScreen('s-settings');
+  } else {
+    document.getElementById('teacher-pin-err').textContent='비밀번호가 틀렸어요. 다시 확인해주세요 🔒';
+    document.getElementById('teacher-pin').value='';
+    document.getElementById('teacher-pin').focus();
   }
-  document.getElementById('set-school').value=S.school;
-  document.getElementById('set-classcode').value=localStorage.getItem('sp_class_code')||'';
-  renderStudentAdmin();
-  showScreen('s-settings');
 }
 
 // ══════════════════════════
