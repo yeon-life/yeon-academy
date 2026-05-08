@@ -1,5 +1,5 @@
-// 수풀AI 서비스 워커 — 2026-05-08 v3 (분점 공유 안전 빌드 — 일반 화면 API 키 노출 전면 제거)
-const CACHE = 'supul-ai-v3-20260508-secure';
+// 수풀AI 서비스 워커 — 2026-05-08 v4 (AI 도우미 채팅·음성입력·관리자 기능 완성)
+const CACHE = 'supul-ai-v4-20260508';
 const ASSETS = [
   '/yeon-academy/supul/',
   '/yeon-academy/supul/index.html',
