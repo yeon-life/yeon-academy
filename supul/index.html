@@ -1463,6 +1463,35 @@ function confirmExitClassMode(){
   }
 }
 
+// ── 선행 학습 이력 ──
+function getAdvancedHist(name){
+  try{return JSON.parse(localStorage.getItem('sp_adv_'+(name||''))||'[]');}catch(e){return[];}
+}
+function saveAdvancedHist(name,topic){
+  if(!name||!topic)return;
+  const arr=getAdvancedHist(name);
+  arr.unshift({topic,date:new Date().toLocaleDateString('ko-KR'),id:Date.now()});
+  localStorage.setItem('sp_adv_'+name, JSON.stringify(arr.slice(0,50)));
+}
+async function reExplainAdvanced(prob){
+  setLoad(true);
+  const g=S.grade||3;
+  const sysPrompt=`당신은 수학 선생님입니다. 지금 초등 ${g}학년 학생이 선행 학습으로 중학교 이상 수준의 문제를 물어보고 있습니다.
+중학교 수준의 정확한 개념과 용어로 설명하되, 최대한 쉽고 친근하게 단계별로 풀어주세요.
+학생이 선행 학습에 도전하고 있음을 칭찬하고 격려하는 톤을 유지하세요.
+[HTML 출력 형식]
+파트1: ---EXPLANATION_START--- 와 ---EXPLANATION_END--- 사이에 HTML로 설명
+파트2: ---YOUTUBE_START--- 와 ---YOUTUBE_END--- 사이에 유튜브 검색어 JSON 5개`;
+  try{
+    const data=await callClaudeViaServer({
+      systemPrompt:sysPrompt,
+      userContent:`선행 학습 중인 초등 ${g}학년 학생 질문: "${prob}"\n중학교 개념으로 정확하게, 파트1과 파트2 모두 작성해주세요.`,
+      model:'claude-opus-4-7', maxTokens:3000
+    });
+    processRes(data.content,'concept',prob);
+  }catch(e){setLoad(false);showToast('오류: '+e.message);}
+}
+
 function renderAdminStudents(){
   const students=getStudents();
   const el=document.getElementById('admin-student-info');
@@ -1971,6 +2000,18 @@ function renderStudentAdmin(){
         <div style="font-size:11px;font-weight:700;color:var(--mid);margin-bottom:4px;">📅 ${today} 학습 기록 · 누적 ${totalRecs}건</div>
         ${todayRows}
       </div>
+      ${(()=>{
+        const adv=getAdvancedHist(s.name);
+        if(!adv.length) return '';
+        return `<div style="padding:8px 14px 10px;background:#f0f7ff;border-top:1px solid #bfdbfe;">
+          <div style="font-size:11px;font-weight:700;color:#1d4ed8;margin-bottom:6px;">📚 선행 학습 기록 ${adv.length}건</div>
+          ${adv.slice(0,5).map(a=>`
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #dbeafe;">
+              <span style="font-size:10px;color:#93c5fd;min-width:52px;flex-shrink:0;">${a.date}</span>
+              <span style="font-size:12px;font-weight:700;color:#1e40af;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.topic}</span>
+            </div>`).join('')}
+        </div>`;
+      })()}
     </div>`;
   }).join('');
 }
@@ -2322,7 +2363,9 @@ ${cogGuide}
 ${curriculum}
 
 ⚠️ 만약 질문이 위 학년 수준을 벗어나면:
-- 설명 맨 앞에 <div class="concept-box"><div class="concept-title">⚠️ 수준 안내</div>이 내용은 ${gl} 범위보다 조금 높아요. 지금 잘 따라오고 있으니 같이 살펴봐요! 😊</div> 를 먼저 넣고, 위 학년 설명 방식으로 최대한 쉽게 설명.
+- HTML 파트 맨 앞에 반드시 <!--ADVANCED--> 를 삽입 (화면에 보이지 않음, 내부 처리용)
+- 경고 박스나 수준 안내 박스는 절대 넣지 않는다
+- 선행 학습에 도전하는 학생을 격려하는 톤으로, 이 학생의 인지 수준(${clLabel})에 맞춰 가장 좋은 방법으로 자연스럽게 설명한다
 
 [HTML 출력 형식 — 두 파트]
 
@@ -2377,21 +2420,25 @@ ${ageTip}
 //  응답 처리
 // ══════════════════════════
 function processRes(text,htype,prob){
-  addEffort('sess_question',2); // 🔥 질문 노력 점수
+  addEffort('sess_question',2);
   const expM=text.match(/---EXPLANATION_START---([\s\S]*?)---EXPLANATION_END---/);
-  const expHTML=expM?expM[1].trim():text;
+  let expHTML=expM?expM[1].trim():text;
   let ytSearches=[];
   const ytM=text.match(/---YOUTUBE_START---([\s\S]*?)---YOUTUBE_END---/);
   if(ytM){try{ytSearches=JSON.parse(ytM[1].trim());}catch(e){}}
+
+  // 선행 감지
+  const isAdvanced=expHTML.includes('<!--ADVANCED-->');
+  expHTML=expHTML.replace('<!--ADVANCED-->','').trim();
+  if(isAdvanced) saveAdvancedHist(S.studentName, prob);
+
   const conM=expHTML.match(/<h[23][^>]*>([^<]+)<\/h[23]>/);
   const concept=conM?conM[1].replace(/[🎨📝💡🔍🌿⭐]/g,'').trim():prob.slice(0,20);
-  const record=saveHist({grade:S.grade,concept,problem:prob,htype,ytSearches,expHTML});
+  const record=saveHist({grade:S.grade,concept,problem:prob,htype,ytSearches,expHTML,isAdvanced});
   S.curRecord=record;
-  // Firestore 캐시 저장 (백그라운드)
   if(window._fbSaveCache) window._fbSaveCache(S.grade,prob,htype,expHTML,ytSearches,concept);
-  renderExp(expHTML,htype,ytSearches);
+  renderExp(expHTML,htype,ytSearches,isAdvanced?prob:null);
   setLoad(false);
-  // ⭐ 별은 이해도 평가 후 차등 지급 (자동 지급 제거)
 }
 
 // ══════════════════════════
@@ -2883,7 +2930,19 @@ const expHTML_TPL=(html,htype)=>`
 
 function isWideScreen(){return window.innerWidth>=1024;}
 
-function renderExp(html,htype,ytSearches){
+function renderExp(html,htype,ytSearches,advancedProb){
+  if(advancedProb){
+    const banner=`<div style="background:linear-gradient(135deg,#f0f7ff,#e8f0fe);border:2px solid #93c5fd;border-radius:16px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:13px;font-weight:900;color:#1d4ed8;">📚 선행 학습 감지!</div>
+        <div style="font-size:12px;color:#3b82f6;margin-top:2px;">선생님 기록에 저장됐어요. 도전하는 자세 멋져요! 🌟</div>
+      </div>
+      <button onclick="reExplainAdvanced(${JSON.stringify(advancedProb)})" style="background:#2563eb;border:none;border-radius:12px;padding:8px 14px;font-family:inherit;font-size:12px;font-weight:700;color:white;cursor:pointer;white-space:nowrap;">
+        📖 중학교 개념으로 다시 설명
+      </button>
+    </div>`;
+    html=banner+html;
+  }
   const content=expHTML_TPL(html,htype);
   if(isWideScreen()){
     // 큰 화면: 오른쪽 패널에 바로 표시
