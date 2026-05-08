@@ -449,7 +449,7 @@ async function callClaudeViaServer({ systemPrompt, userContent, model, maxTokens
       htype: htype || null,
       systemPrompt,
       userContent,
-      model: model || 'claude-opus-4-6',
+      model: model || 'claude-opus-4-7',
       maxTokens: maxTokens || 2800
     })
   });
@@ -2217,7 +2217,7 @@ async function callClaude(prob,htype){
     // 🔒 서버(Firebase Functions)를 통해 호출 — API 키 브라우저 노출 없음
     // 💰 htype별 모델 분기 (비용 최적화)
     const _MODEL_HAIKU = 'claude-haiku-4-5-20251001'; // 단순 작업
-    const _MODEL_SONNET = 'claude-sonnet-4-6';         // 추론/설명
+    const _MODEL_SONNET = 'claude-opus-4-7';            // 추론/설명
     const _selectedModel = ['hint','easier'].includes(htype) ? _MODEL_HAIKU : _MODEL_SONNET;
     const data = await callClaudeViaServer({
       systemPrompt: buildSys(htype),
@@ -3611,7 +3611,7 @@ async function processImageData(dataURL,mimeType){
         {type:"image",source:{type:"base64",media_type:mediaType,data:base64}},
         {type:"text",text:`${S.grade}학년 학생이 사진 속 수학 문제를 이해 못 하고 있어요. 파트1(설명 HTML)과 파트2(유튜브 JSON) 두 파트를 반드시 모두 작성해주세요.`}
       ],
-      model:"claude-sonnet-4-6",
+      model:"claude-opus-4-7",
       maxTokens:2800,
       grade:S.grade,
       htype:"concept"
@@ -3792,7 +3792,7 @@ ${todayProblems.length?'오늘 수풀AI 학습: '+todayProblems.join(', '):''}
     // 🔒 서버 프록시 통해 호출
     const data = await callClaudeViaServer({
       userContent: prompt,
-      model: 'claude-sonnet-4-6',
+      model: 'claude-opus-4-7',
       maxTokens: 1200,
       grade: grade,
       htype: 'worksheet',
