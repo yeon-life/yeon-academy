@@ -578,6 +578,20 @@ function updateUsageDisplay(remaining) {
       <button class="btn btn-ghost" onclick="renderStudentAdmin()" style="margin-top:10px;font-size:14px;">🔄 새로고침</button>
     </div>
 
+    <!-- 새 학년 시작 -->
+    <div class="card" style="border:2px solid #86efac;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:28px;">🎓</span>
+        <div>
+          <div class="sl" style="margin:0;">새 학년 시작</div>
+          <div style="font-size:12px;color:var(--mid);">전체 학생을 한 학년씩 올립니다 · 기록은 그대로 유지</div>
+        </div>
+      </div>
+      <button onclick="advanceAllGrades()" style="width:100%;background:linear-gradient(135deg,#16a34a,#4ade80);border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:15px;font-weight:700;color:white;cursor:pointer;">
+        🎓 전체 학년 올리기
+      </button>
+    </div>
+
     <!-- 취약점 통합 -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -1637,14 +1651,19 @@ function renderStudentAdmin(){
       <!-- 학생 헤더 -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--mint);">
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:22px;">${GE[s.grade||3]}</span>
+          <span style="font-size:22px;" data-grade-emoji="${s.name}">${GE[s.grade||3]}</span>
           <div>
             <span style="font-weight:900;font-size:15px;color:var(--deep);">${s.name}</span>
-            <span style="font-size:12px;color:var(--mid);margin-left:6px;">${s.grade||3}학년</span>
+            <span style="font-size:12px;color:var(--mid);margin-left:6px;" id="grade-label-${s.name}">${s.grade||3}학년</span>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:13px;font-weight:700;color:#8a6d00;">⭐${s.stars||0}</span>
+          <div style="display:flex;align-items:center;gap:2px;background:white;border:1.5px solid var(--green-lt);border-radius:10px;padding:2px 4px;">
+            <button onclick="adjustStudentGrade('${s.name.replace(/'/g,"\\'")}', -1)" style="background:none;border:none;font-size:14px;font-weight:900;color:var(--deep);cursor:pointer;padding:0 4px;line-height:1;">−</button>
+            <span style="font-size:12px;font-weight:700;color:var(--deep);min-width:28px;text-align:center;" id="grade-num-${s.name}">${s.grade||3}학년</span>
+            <button onclick="adjustStudentGrade('${s.name.replace(/'/g,"\\'")}', +1)" style="background:none;border:none;font-size:14px;font-weight:900;color:var(--deep);cursor:pointer;padding:0 4px;line-height:1;">+</button>
+          </div>
           <span style="font-size:11px;background:${todayBadgeColor};color:white;border-radius:10px;padding:2px 8px;font-weight:700;">오늘 ${todayRecs.length}건</span>
           <button onclick="deleteStudent('${s.name}')" style="background:#fee2e2;border:none;border-radius:10px;padding:4px 10px;font-family:inherit;font-size:11px;font-weight:700;color:#dc2626;cursor:pointer;">삭제</button>
         </div>
@@ -2159,6 +2178,67 @@ function deleteStudent(name){
   saveStudents(arr);
   renderStudentAdmin();
   showToast(`${name} 학생을 삭제했어요`);
+}
+
+// ══════════════════════════
+//  학년 조정
+// ══════════════════════════
+function adjustStudentGrade(name, delta){
+  const students=getStudents();
+  const s=students.find(x=>x.name===name);
+  if(!s) return;
+  const prev=s.grade||3;
+  const next=Math.min(6, Math.max(1, prev+delta));
+  if(next===prev) return;
+  s.grade=next;
+  saveStudents(students);
+  // DOM 직접 업데이트 (전체 리렌더 없이)
+  const numEl=document.getElementById('grade-num-'+name);
+  const labelEl=document.getElementById('grade-label-'+name);
+  const GE=['','🐣','🐥','🐇','🦊','🦅','🦁'];
+  if(numEl) numEl.textContent=next+'학년';
+  if(labelEl) labelEl.textContent=next+'학년';
+  // 헤더 이모지 업데이트
+  const emojiEl=document.querySelector(`[data-grade-emoji="${name}"]`);
+  if(emojiEl) emojiEl.textContent=GE[next];
+  showToast(`${name} → ${next}학년으로 변경했어요`);
+}
+
+function advanceAllGrades(){
+  const students=getStudents();
+  if(!students.length){ showToast('등록된 학생이 없어요'); return; }
+
+  const graduates=students.filter(s=>(s.grade||3)>=6);
+  const advancing=students.filter(s=>(s.grade||3)<6);
+
+  let msg=`전체 ${students.length}명의 학년을 올릴까요?\n\n`;
+  if(advancing.length) msg+=`• ${advancing.length}명: 한 학년 진급\n`;
+  if(graduates.length) msg+=`• ${graduates.length}명 (6학년): 졸업 처리 (학습 기록 보존)\n`;
+  msg+='\n이 작업은 되돌릴 수 없습니다.';
+
+  if(!confirm(msg)) return;
+
+  const now=new Date().toISOString();
+  students.forEach(s=>{
+    const g=s.grade||3;
+    if(g<6){
+      s.gradeHistory=s.gradeHistory||[];
+      s.gradeHistory.push({from:g, to:g+1, at:now});
+      s.grade=g+1;
+    } else {
+      // 6학년 → 졸업 마킹 (기록 유지)
+      s.graduated=true;
+      s.graduatedAt=now;
+    }
+  });
+  saveStudents(students);
+  renderStudentAdmin();
+  renderCogLevelAdmin();
+
+  const msg2=graduates.length
+    ? `🎓 진급 완료! ${advancing.length}명 진급 · ${graduates.length}명 졸업 처리`
+    : `🎓 전체 ${advancing.length}명 진급 완료!`;
+  showToast(msg2);
 }
 // QR 코드
 let qrInstance=null;
