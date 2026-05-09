@@ -1820,10 +1820,22 @@ function renderCogLevelAdmin(){
   const students=getStudents();
   const CLN=['','🌱초보','🌿기초','🌲보통','🦊능숙','🦅심화','🦁최상'];
   if(!students.length){el.innerHTML='<div style="color:var(--mid);font-size:13px;text-align:center;padding:8px;">등록된 학생 없음</div>';return;}
-  el.innerHTML=students.map(s=>{
+  // 전체 일괄 변경 섹션
+  const bulkRow=`<div style="background:#f0fdf4;border-radius:12px;padding:10px 12px;margin-bottom:12px;border:1.5px solid var(--green-lt);">
+    <div style="font-size:11px;font-weight:700;color:var(--mid);margin-bottom:8px;">⚡ 전체 일괄 변경</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;">${[1,2,3,4,5,6].map(lv=>`
+      <button onclick="setAllCogLevel(${lv})" style="
+        padding:4px 10px;border-radius:8px;border:1.5px solid var(--green-lt);
+        background:white;color:var(--deep);
+        font-size:11px;font-family:inherit;cursor:pointer;white-space:nowrap;font-weight:700;">
+        ${CLN[lv]}</button>`).join('')}
+    </div>
+  </div>`;
+  // 학생별 개별 조정
+  const rows=students.map(s=>{
     const cl=s.cogLevel||s.grade||3;
     const sn=s.name.replace(/'/g,"\\'");
-    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--green-lt);">
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--green-lt);">
       <span style="font-size:13px;font-weight:700;color:var(--deep);width:60px;flex-shrink:0;">${s.name}</span>
       <div style="display:flex;gap:3px;flex:1;flex-wrap:wrap;">${[1,2,3,4,5,6].map(lv=>`
         <button onclick="setCogLevel('${sn}',${lv});renderCogLevelAdmin();" style="
@@ -1834,6 +1846,15 @@ function renderCogLevelAdmin(){
       </div>
     </div>`;
   }).join('');
+  el.innerHTML=bulkRow+rows;
+}
+function setAllCogLevel(lv){
+  const CLN=['','🌱초보','🌿기초','🌲보통','🦊능숙','🦅심화','🦁최상'];
+  const students=getStudents();
+  students.forEach(s=>{ s.cogLevel=lv; });
+  saveStudents(students);
+  renderCogLevelAdmin();
+  showToast(`전체 학생 → ${CLN[lv]} 으로 변경`);
 }
 
 // ══════════════════════════
