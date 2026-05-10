@@ -4404,40 +4404,79 @@ function startStudentVoice(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){ showToast('이 브라우저는 음성 인식이 안 돼요 😢'); return; }
   const btn=document.getElementById('schat-voice-btn');
+  const inp=document.getElementById('schat-input');
 
+  // ── 녹음 중이면 수동 중단
   if(_schatVoiceRec){
     _schatVoiceRec.stop();
-    _schatVoiceRec=null;
-    btn.classList.remove('recording');
-    btn.textContent='🎙️';
     return;
   }
 
   const rec=new SR();
   rec.lang='ko-KR';
-  rec.interimResults=false;
+  rec.continuous=true;       // 말이 끊겨도 계속 듣기
+  rec.interimResults=true;   // 말하는 중간 결과도 실시간 표시
+  rec.maxAlternatives=1;
   _schatVoiceRec=rec;
+
+  let finalText='';          // 확정된 텍스트 누적
+  let silenceTimer=null;     // 무음 감지 타이머
+
   btn.classList.add('recording');
   btn.textContent='⏹️';
+  showToast('🎙️ 듣고 있어요… 말씀해주세요!');
 
   rec.onresult=e=>{
-    const t=e.results[0][0].transcript;
-    const inp=document.getElementById('schat-input');
-    if(inp) inp.value=t;
+    // 무음 타이머 리셋 (말하는 동안은 계속 연장)
+    clearTimeout(silenceTimer);
+
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const seg=e.results[i][0].transcript;
+      if(e.results[i].isFinal){
+        finalText+=seg;          // 확정 세그먼트 누적
+      } else {
+        interim+=seg;            // 임시 세그먼트
+      }
+    }
+    // 입력창에 실시간 표시 (확정 + 임시)
+    if(inp){
+      inp.value=finalText+(interim?` ${interim}`:'');
+      inp.style.height='auto';
+      inp.style.height=Math.min(inp.scrollHeight,100)+'px';
+    }
+
+    // 말이 1.8초간 없으면 자동 종료
+    silenceTimer=setTimeout(()=>{
+      if(_schatVoiceRec) _schatVoiceRec.stop();
+    }, 1800);
   };
+
   rec.onend=()=>{
+    clearTimeout(silenceTimer);
     btn.classList.remove('recording');
     btn.textContent='🎙️';
     _schatVoiceRec=null;
-    // 음성 인식 완료 시 자동 전송
-    setTimeout(()=>sendStudentChat(), 200);
+
+    // 최종 텍스트 정리 후 전송
+    if(inp) inp.value=finalText.trim();
+    if(finalText.trim()) sendStudentChat();
   };
+
   rec.onerror=e=>{
+    clearTimeout(silenceTimer);
     btn.classList.remove('recording');
     btn.textContent='🎙️';
     _schatVoiceRec=null;
-    if(e.error!=='no-speech') showToast('음성 인식 오류: '+e.error);
+    if(e.error==='no-speech'){
+      showToast('아무 말도 안 들렸어요 😅 다시 눌러봐!');
+    } else if(e.error==='not-allowed'){
+      showToast('마이크 권한이 필요해요 🎙️ 브라우저 설정 확인!');
+    } else {
+      showToast('음성 인식 오류: '+e.error);
+    }
   };
+
   rec.start();
 }
 </script>
