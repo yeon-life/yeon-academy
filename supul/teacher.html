@@ -651,7 +651,7 @@ function updateUsageDisplay(remaining) {
     <div class="card" style="text-align:center;">
       <div style="font-size:36px;margin-bottom:6px;">🌿</div>
       <div style="font-weight:900;font-size:15px;color:var(--deep);">수풀AI v2.1 · 연플래닝 초등부용</div>
-      <button onclick="openAdminAuth()" style="margin-top:16px;background:var(--navy, #37334f);border:none;border-radius:14px;padding:10px 22px;font-family:inherit;font-size:13px;font-weight:700;color:white;cursor:pointer;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.7'">
+      <button onclick="openAdminAuth()" data-role-admin-only style="display:none;margin-top:16px;background:var(--navy, #37334f);border:none;border-radius:14px;padding:10px 22px;font-family:inherit;font-size:13px;font-weight:700;color:white;cursor:pointer;opacity:.7;transition:opacity .2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.7'">
         🔧 관리자 모드
       </button>
     </div>
@@ -689,15 +689,38 @@ function updateUsageDisplay(remaining) {
       <div id="admin-key-status" style="margin-top:10px;font-size:13px;text-align:center;"></div>
     </div>
 
-    <!-- 관리자 코드 변경 -->
-    <div class="card" style="border:2px solid #37334f;">
-      <div class="sl">🔐 관리자 코드 변경</div>
+    <!-- 4단계 권한 코드 변경 (서버 관리자만) -->
+    <div class="card" style="border:2px solid #dc2626;background:#fff5f5;">
+      <div class="sl">🔴 서버 관리자 코드 변경 (연소사님 본인 전용)</div>
+      <div style="font-size:12px;color:var(--mid);margin-bottom:10px;">분실 시 직접 코드 복구 불가 — 신중하게 변경하세요.</div>
       <div class="fg">
-        <label>새 관리자 코드 (6자리 숫자)</label>
-        <input type="password" id="new-admin-code" maxlength="6" inputmode="numeric" placeholder="새 코드 입력"/>
+        <label>새 서버 관리자 코드 (6자리 숫자)</label>
+        <input type="password" id="new-server-code" maxlength="6" inputmode="numeric" placeholder="새 코드 입력"/>
       </div>
-      <button class="btn btn-pri" onclick="changeAdminCode()">변경하기</button>
+      <button class="btn btn-pri" onclick="changeServerCode()">변경하기</button>
     </div>
+
+    <div class="card" style="border:2px solid #d4a373;background:#fffbf3;">
+      <div class="sl">🟡 학원(지점) 관리자 코드 변경</div>
+      <div style="font-size:12px;color:var(--mid);margin-bottom:10px;">분점 원장님(예: 박미향 원장님)께 전달할 코드.</div>
+      <div class="fg">
+        <label>새 지점 관리자 코드 (6자리 숫자)</label>
+        <input type="password" id="new-branch-code" maxlength="6" inputmode="numeric" placeholder="새 코드 입력"/>
+      </div>
+      <button class="btn btn-pri" onclick="changeBranchCode()">변경하기</button>
+    </div>
+
+    <div class="card" style="border:2px solid var(--green);background:var(--mint);">
+      <div class="sl">🟢 선생님 코드 변경</div>
+      <div style="font-size:12px;color:var(--mid);margin-bottom:10px;">학원 지점 관리자가 자기 학원 선생님에게 전달하는 코드.</div>
+      <div class="fg">
+        <label>새 선생님 코드 (6자리 숫자)</label>
+        <input type="password" id="new-teacher-code" maxlength="6" inputmode="numeric" placeholder="새 코드 입력"/>
+      </div>
+      <button class="btn btn-pri" onclick="changeTeacherCode()">변경하기</button>
+    </div>
+
+    <!-- 안내: 코드 자체는 화면에 표시하지 않음 (캡처 유출 방지). 가이드북/지침 참조. -->
 
     <!-- 선생님 코드 현황 -->
     <div class="card">
@@ -821,7 +844,7 @@ function updateUsageDisplay(remaining) {
     <div style="font-size:18px;font-weight:900;color:var(--deep);margin-bottom:6px;">선생님 인증</div>
     <div style="font-size:13px;color:var(--mid);margin-bottom:20px;">선생님 전용 · 비밀번호를 입력하세요</div>
     <div style="display:flex;justify-content:center;gap:8px;margin-bottom:20px;">
-      <input type="password" id="teacher-pin" maxlength="8" inputmode="numeric"
+      <input type="password" id="teacher-pin" maxlength="6" inputmode="numeric"
         style="width:160px;text-align:center;font-size:28px;font-weight:900;letter-spacing:8px;border:3px solid var(--green-lt);border-radius:16px;padding:12px;font-family:inherit;outline:none;"
         onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor='var(--green-lt)'"
         onkeydown="if(event.key==='Enter')checkTeacherPin()"/>
@@ -930,14 +953,34 @@ function upsertStudent(st){
 }
 
 // ══════════════════════════
-//  관리자 코드 (연소사님 전용)
-//  ↓ 아래 숫자를 원하는 6자리로 바꾸세요
+//  4단계 권한 코드 (가이드북 §10-14 / §7-0 / ⚠️_02 절대 규칙)
+//  서버 관리자 = 연소사님 본인 전용 (API 키·모든 코드 변경 권한)
+//  학원(지점) 관리자 = 분점 원장님 (학원 운영 + 선생님 관리)
+//  선생님 = 일반 선생님 (학생 등록·수업 도우미만)
+//  학급 코드 = 학생 등록용 (별도 체계, 인증 코드 아님)
 // ══════════════════════════
-const DEFAULT_ADMIN_CODE = '9339'; // ← 연소사님이 직접 변경 가능 (기본값: 9339)
-const DEFAULT_CLASS_CODE = '456789';  // ← 기본 학급 코드 (선생님 설정화면에서 변경 가능)
+const DEFAULT_SERVER_CODE  = '822000';  // 🔴 서버 관리자 (연소사님 전용)
+const DEFAULT_BRANCH_CODE  = '123400';  // 🟡 학원(지점) 관리자
+const DEFAULT_TEACHER_CODE = '123450';  // 🟢 일반 선생님
+const DEFAULT_CLASS_CODE   = '456789';  // 학급 코드 (학생 등록용)
 
-function getAdminCode(){ return localStorage.getItem('sp_admin_code') || DEFAULT_ADMIN_CODE; }
-function getClassCode(){ return localStorage.getItem('sp_class_code') || DEFAULT_CLASS_CODE; }
+function getServerCode(){  return localStorage.getItem('sp_server_code')  || DEFAULT_SERVER_CODE;  }
+function getBranchCode(){  return localStorage.getItem('sp_branch_code')  || DEFAULT_BRANCH_CODE;  }
+function getTeacherCode(){ return localStorage.getItem('sp_teacher_code') || DEFAULT_TEACHER_CODE; }
+function getClassCode(){   return localStorage.getItem('sp_class_code')   || DEFAULT_CLASS_CODE;   }
+// 하위 호환: 서버 호출용 adminCode는 서버 관리자 코드를 사용
+function getAdminCode(){ return getServerCode(); }
+
+// 현재 세션 권한 (teacher-pin 입력 시 결정)
+window.SUPUL_ROLE = null;  // 'server' | 'branch' | 'teacher' | null
+function getRole(){ return window.SUPUL_ROLE; }
+function setRole(r){ window.SUPUL_ROLE = r; }
+function roleLabel(r){
+  return r==='server'  ? '🔴 서버 관리자 (연소사님)' :
+         r==='branch'  ? '🟡 학원(지점) 관리자' :
+         r==='teacher' ? '🟢 선생님' : '미인증';
+}
+function canAccessAdmin(){ return getRole() === 'server'; }  // 🔧 관리자 모드는 서버 관리자만
 
 // ── 관리자 인증 ──
 function openAdminAuth(){
@@ -951,7 +994,8 @@ function closeAdminAuth(){
 }
 function checkAdminPin(){
   const pin=document.getElementById('admin-pin').value.trim();
-  if(pin===getAdminCode()){
+  // 🔴 관리자 모드 진입은 서버 관리자 코드로만 가능
+  if(pin===getServerCode()){
     closeAdminAuth();
     // 🔒 API 키는 서버에 있음 — 브라우저 자동 로드 불필요
     openAdminPanel();
@@ -1260,11 +1304,40 @@ function toggleShowKey(){
   else{inp.type='password';btn.textContent='보기';}
 }
 function changeAdminCode(){
-  const c=document.getElementById('new-admin-code').value.trim();
+  // 호환: 기존 changeAdminCode 호출은 서버 관리자 코드 변경으로 매핑
+  changeServerCode();
+}
+function changeServerCode(){
+  if(getRole() !== 'server'){showToast('서버 관리자만 변경할 수 있어요');return;}
+  const c=document.getElementById('new-server-code').value.trim();
   if(!/^\d{6}$/.test(c)){showToast('6자리 숫자만 입력해주세요');return;}
-  localStorage.setItem('sp_admin_code',c);
-  document.getElementById('new-admin-code').value='';
-  showToast('관리자 코드 변경 완료! ✅');
+  localStorage.setItem('sp_server_code',c);
+  document.getElementById('new-server-code').value='';
+  showToast('🔴 서버 관리자 코드 변경 완료 ✅');
+}
+function changeBranchCode(){
+  if(getRole() !== 'server'){showToast('서버 관리자만 변경할 수 있어요');return;}
+  const c=document.getElementById('new-branch-code').value.trim();
+  if(!/^\d{6}$/.test(c)){showToast('6자리 숫자만 입력해주세요');return;}
+  if(c === localStorage.getItem('sp_server_code') || c === DEFAULT_SERVER_CODE){
+    showToast('서버 관리자 코드와 같은 숫자는 사용할 수 없어요');return;
+  }
+  localStorage.setItem('sp_branch_code',c);
+  document.getElementById('new-branch-code').value='';
+  showToast('🟡 학원(지점) 관리자 코드 변경 완료 ✅');
+}
+function changeTeacherCode(){
+  if(getRole() !== 'server'){showToast('서버 관리자만 변경할 수 있어요');return;}
+  const c=document.getElementById('new-teacher-code').value.trim();
+  if(!/^\d{6}$/.test(c)){showToast('6자리 숫자만 입력해주세요');return;}
+  const server = localStorage.getItem('sp_server_code') || DEFAULT_SERVER_CODE;
+  const branch = localStorage.getItem('sp_branch_code') || DEFAULT_BRANCH_CODE;
+  if(c === server || c === branch){
+    showToast('상위 관리자 코드와 같은 숫자는 사용할 수 없어요');return;
+  }
+  localStorage.setItem('sp_teacher_code',c);
+  document.getElementById('new-teacher-code').value='';
+  showToast('🟢 선생님 코드 변경 완료 ✅');
 }
 function clearAllStudentHist(){
   // sp_hist_* 키 전부 삭제
@@ -1582,7 +1655,13 @@ function closeTeacherAuth(){
 }
 function checkTeacherPin(){
   const pin=document.getElementById('teacher-pin').value.trim();
-  if(pin===getAdminCode()){
+  let role = null;
+  if      (pin === getServerCode())  role = 'server';
+  else if (pin === getBranchCode())  role = 'branch';
+  else if (pin === getTeacherCode()) role = 'teacher';
+
+  if(role){
+    setRole(role);
     closeTeacherAuth();
     document.getElementById('set-school').value=S.school;
     document.getElementById('set-classcode').value=localStorage.getItem('sp_class_code')||'';
@@ -1591,11 +1670,29 @@ function checkTeacherPin(){
     renderInactiveStudents();
     renderCogLevelAdmin();
     showScreen('s-settings');
+    applyRoleVisibility();
+    showToast('환영합니다 — ' + roleLabel(role));
   } else {
     document.getElementById('teacher-pin-err').textContent='비밀번호가 틀렸어요. 다시 확인해주세요 🔒';
     document.getElementById('teacher-pin').value='';
     document.getElementById('teacher-pin').focus();
   }
+}
+
+// 권한별 UI 보임/숨김
+function applyRoleVisibility(){
+  const role = getRole();
+  // 🔧 관리자 모드 버튼은 서버 관리자에게만 노출
+  document.querySelectorAll('[data-role-admin-only]').forEach(el => {
+    el.style.display = (role === 'server') ? '' : 'none';
+  });
+  // 학원 운영 카드는 지점 관리자 + 서버 관리자에게만 노출
+  document.querySelectorAll('[data-role-branch-only]').forEach(el => {
+    el.style.display = (role === 'server' || role === 'branch') ? '' : 'none';
+  });
+  // 현재 권한 표시 뱃지
+  const badge = document.getElementById('role-badge');
+  if(badge){ badge.textContent = roleLabel(role); }
 }
 
 // ══════════════════════════

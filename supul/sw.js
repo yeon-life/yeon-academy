@@ -1,8 +1,9 @@
-// 수풀AI 서비스 워커 — 2026-05-08 v4 (AI 도우미 채팅·음성입력·관리자 기능 완성)
-const CACHE = 'supul-ai-v4-20260508';
+// 수풀AI 서비스 워커 — 2026-05-08 v5 (4단계 권한·6자리 코드 분리 — 분점 공유 안전)
+const CACHE = 'supul-ai-v5-20260513-4tier';
 const ASSETS = [
   '/yeon-academy/supul/',
   '/yeon-academy/supul/index.html',
+  '/yeon-academy/supul/teacher.html',
   '/yeon-academy/supul/manifest.json',
   '/yeon-academy/supul/icon-192.png',
   '/yeon-academy/supul/icon-512.png'
